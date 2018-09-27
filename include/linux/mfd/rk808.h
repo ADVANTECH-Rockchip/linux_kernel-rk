@@ -158,7 +158,11 @@ enum rk805_reg {
 #define RK808_INT_STS_MSK_REG1	0x4d
 #define RK808_INT_STS_REG2	0x4e
 #define RK808_INT_STS_MSK_REG2	0x4f
+#ifdef CONFIG_ARCH_ADVANTECH
+#define RK808_IO_POL_REG	0x9f
+#else
 #define RK808_IO_POL_REG	0x50
+#endif
 
 #define RK818_VB_MON_REG		0x21
 #define RK818_THERMAL_REG		0x22

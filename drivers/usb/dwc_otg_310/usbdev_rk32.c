@@ -178,7 +178,7 @@ static void dwc_otg_uart_mode(void *pdata, int enter_usb_uart_mode)
 }
 #endif
 
-static void usb20otg_power_enable(int enable)
+/*static*/ void usb20otg_power_enable(int enable)
 {
 	if (0 == enable) {
 		/* disable otg_drv power */

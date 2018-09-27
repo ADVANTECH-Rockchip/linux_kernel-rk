@@ -37,6 +37,10 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/pm_runtime.h>
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/of_gpio.h>
+#include <linux/gpio.h>
+#endif
 
 #include <asm/io.h>
 #include <asm/irq.h>
@@ -53,6 +57,10 @@
 #endif
 
 #define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
+
+#ifdef CONFIG_ARCH_ADVANTECH
+#define TX_TIMEOUT	200
+#endif
 
 /*
  * Here we define the default xmit fifo size used for each type of UART.
@@ -1312,8 +1320,25 @@ static void serial8250_start_tx(struct uart_port *port)
 
 	serial8250_rpm_get_tx(up);
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	if (port->rs485.flags & SER_RS485_ENABLED) {
+		if (port->rs485.flags & SER_RS485_RTS_ON_SEND) {
+			gpio_direction_output(up->rs485_gpio,up->rs485_tx_active);
+			udelay(1);
+			up->tx_dma_enabled = 0;
+		}
+	}
+#endif
+
 	if (up->dma && !up->dma->tx_dma(up))
+#ifdef CONFIG_ARCH_ADVANTECH
+	{
+		up->tx_dma_enabled = 1;
+		goto OUT;
+	}
+#else
 		return;
+#endif
 
 	if (!(up->ier & UART_IER_THRI)) {
 		up->ier |= UART_IER_THRI;
@@ -1335,6 +1360,17 @@ static void serial8250_start_tx(struct uart_port *port)
 		up->acr &= ~UART_ACR_TXDIS;
 		serial_icr_write(up, UART_ACR, up->acr);
 	}
+
+#ifdef CONFIG_ARCH_ADVANTECH
+OUT:
+	if (port->rs485.flags & SER_RS485_ENABLED) {
+		if (port->rs485.flags & SER_RS485_RTS_ON_SEND) {
+			hrtimer_try_to_cancel(&up->tx_timer);
+			up->wait_count = TX_TIMEOUT;
+			hrtimer_start(&up->tx_timer, ns_to_ktime(2000000), HRTIMER_MODE_REL);
+		}
+	}
+#endif
 }
 
 static void serial8250_throttle(struct uart_port *port)

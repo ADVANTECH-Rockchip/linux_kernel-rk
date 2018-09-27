@@ -469,6 +469,54 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
 	return num;
 }
 
+#ifdef CONFIG_ARCH_ADVANTECH
+static int panel_simple_of_get_other_mode(struct panel_simple *panel)
+{
+	struct drm_connector *connector = panel->base.connector;
+	struct drm_device *drm = panel->base.drm;
+	struct drm_display_mode *mode;
+	struct device_node *timings_np;
+	int ret;
+	unsigned int i, num = 0;
+	struct display_timings *disp;
+
+	timings_np = of_get_child_by_name(panel->dev->of_node,
+					  "display-timings");
+	if (!timings_np) {
+		dev_err(panel->dev, "%s: failed to find display-timings node\n", of_node_full_name(panel->dev->of_node));
+		return 0;
+	}
+	of_node_put(timings_np);
+
+	disp = of_get_display_timings(panel->dev->of_node);
+	if (!disp) {
+		pr_err("%s: no timings specified\n", of_node_full_name(panel->dev->of_node));
+		return 0;
+	}
+
+	for (i = 0; i <disp->num_timings; i++){
+		mode = drm_mode_create(drm);
+		if (!mode)
+			continue;
+
+		ret = of_get_drm_display_mode(panel->dev->of_node, mode, i);
+		if (ret) {
+			dev_dbg(panel->dev, "failed to find dts display timings\n");
+			drm_mode_destroy(drm, mode);
+			continue;
+		}
+
+		drm_mode_set_name(mode);
+		if(i == disp->num_timings){
+			mode->type |= DRM_MODE_TYPE_PREFERRED;
+		}
+		drm_mode_probed_add(connector, mode);
+		num++;
+	}
+
+	return num;
+}
+#else
 static int panel_simple_of_get_native_mode(struct panel_simple *panel)
 {
 	struct drm_connector *connector = panel->base.connector;
@@ -503,6 +551,7 @@ static int panel_simple_of_get_native_mode(struct panel_simple *panel)
 
 	return 1;
 }
+#endif
 
 static int panel_simple_regulator_enable(struct drm_panel *panel)
 {
@@ -703,8 +752,13 @@ static int panel_simple_get_modes(struct drm_panel *panel)
 	struct panel_simple *p = to_panel_simple(panel);
 	int num = 0;
 
+
+#ifdef CONFIG_ARCH_ADVANTECH
+	num += panel_simple_of_get_other_mode(p);
+#else
 	/* add device node plane modes */
 	num += panel_simple_of_get_native_mode(p);
+#endif
 
 	/* add hard-coded panel modes */
 	num += panel_simple_get_fixed_modes(p);

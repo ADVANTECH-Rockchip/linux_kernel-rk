@@ -56,6 +56,15 @@ static bool rk808_is_volatile_reg(struct device *dev, unsigned int reg)
 	case RK808_DEVCTRL_REG:
 	case RK808_INT_STS_REG1:
 	case RK808_INT_STS_REG2:
+#ifdef CONFIG_ARCH_ADVANTECH
+	case RK808_DCDC_EN_REG:
+	case RK808_CLK32OUT_REG:
+	case 0x6f:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+#endif
 		return true;
 	}
 
@@ -338,6 +347,16 @@ static const struct rk808_reg_data rk808_pre_init_reg[] = {
 	{ RK808_RTC_CTRL_REG, RTC_STOP, RTC_STOP},
 	{ RK808_VB_MON_REG,       MASK_ALL,         VB_LO_ACT |
 						    VB_LO_SEL_3500MV },
+#ifdef CONFIG_ARCH_ADVANTECH
+	{ RK808_DCDC_EN_REG,  0x1<<5, 0x1<<5},
+	{ RK808_CLK32OUT_REG,  0x1, 0x1},
+	{ 0x6f,  0xff, 0x5a},
+	{ 0x91,  0xff, 0x80},
+	{ 0x92,  0xff, 0x55},
+	{ 0x94,  0xff, 0x0f},
+	{ 0x93,  0xff, 0x05},
+
+#endif
 };
 
 static const struct regmap_irq rk808_irqs[] = {
