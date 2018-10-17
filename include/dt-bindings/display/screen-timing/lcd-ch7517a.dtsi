@@ -29,7 +29,7 @@
 		edp_1920x1080: edp-1920x1080 {
 			screen-type = <SCREEN_EDP>;
 			out-face    = <OUT_P888>;
-			clock-frequency = <148000000>;
+			clock-frequency = <148500000>;
 			hactive = <1920>;
 			vactive = <1080>;
 			hback-porch = <148>;
