@@ -835,6 +835,10 @@ struct rt5660_priv {
 	struct rt5660_platform_data pdata;
 	struct regmap *regmap;
 	struct clk *mclk;
+#ifdef CONFIG_ARCH_ADVANTECH
+	unsigned long	rk_cru_base;
+	unsigned long	rk_grf_base;
+#endif
 
 	int sysclk;
 	int sysclk_src;

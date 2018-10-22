@@ -32,7 +32,9 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
-
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/of_address.h>
+#endif
 
 #include "rl6231.h"
 #include "rt5660.h"
@@ -1284,6 +1286,7 @@ MODULE_DEVICE_TABLE(acpi, rt5660_acpi_match);
 
 static int rt5660_parse_dt(struct rt5660_priv *rt5660, struct device *dev)
 {
+#ifdef CONFIG_ARCH_ADVANTECH
 	struct device_node *node = dev->of_node;
 	int ret;
 	int delay_time;
@@ -1386,7 +1389,7 @@ static int rt5660_parse_dt(struct rt5660_priv *rt5660, struct device *dev)
 	} else {
 		dev_err(dev,"Can not read property amp-mute-gpio\n");
 	}
-	
+#endif
 
 	rt5660->pdata.in1_diff = device_property_read_bool(dev,
 					"realtek,in1-differential");
@@ -1421,6 +1424,9 @@ static int rt5660_i2c_probe(struct i2c_client *i2c,
 	struct rt5660_priv *rt5660;
 	int ret;
 	unsigned int val;
+#ifdef CONFIG_ARCH_ADVANTECH
+	struct device_node *node;
+#endif
 
 	rt5660 = devm_kzalloc(&i2c->dev, sizeof(struct rt5660_priv),
 		GFP_KERNEL);
@@ -1439,6 +1445,19 @@ static int rt5660_i2c_probe(struct i2c_client *i2c,
 		rt5660->pdata = *pdata;
 	else if (i2c->dev.of_node)
 		rt5660_parse_dt(rt5660, &i2c->dev);
+
+#ifdef CONFIG_ARCH_ADVANTECH
+	node = of_parse_phandle(i2c->dev.of_node, "rockchip,cru", 0);
+	if(node)
+		rt5660->rk_cru_base = (unsigned long)of_iomap(node, 0);
+	else
+		dev_err(&i2c->dev, "No rockchip,cru phandle specified");
+	node = of_parse_phandle(i2c->dev.of_node, "rockchip,grf", 0);
+	if(node)
+		rt5660->rk_grf_base = (unsigned long)of_iomap(node, 0);
+	else
+		dev_err(&i2c->dev, "No rockchip,grf phandle specified");
+#endif
 
 	rt5660->regmap = devm_regmap_init_i2c(i2c, &rt5660_regmap);
 	if (IS_ERR(rt5660->regmap)) {
@@ -1481,7 +1500,6 @@ static int rt5660_i2c_probe(struct i2c_client *i2c,
 	}
 
 	rt5660_init(rt5660->regmap);
-	
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5660,
 				      rt5660_dai, ARRAY_SIZE(rt5660_dai));
 }
@@ -1493,6 +1511,36 @@ static int rt5660_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
+#ifdef CONFIG_ARCH_ADVANTECH
+void rt5660_i2c_shutdown(struct i2c_client *client)
+{
+	struct rt5660_priv *rt5660 = i2c_get_clientdata(client);
+	struct snd_soc_codec *codec = rt5660->codec;
+
+	//config i2s pinmux to gpio
+	__raw_writel(0x1550000,(void *)(rt5660->rk_grf_base+0x005c));
+	__raw_writel(0x10000,(void *)(rt5660->rk_grf_base+0x0060));
+	__raw_writel(0x3ff02aa,(void *)(rt5660->rk_grf_base+0x0190));
+	__raw_writel(0x30002,(void *)(rt5660->rk_grf_base+0x0194));
+	//disable i2s mclk & bclk
+	__raw_writel(0x90009,(void *)(rt5660->rk_cru_base+0x0170));
+	//To meet poweroff sequence
+	mdelay(200);
+
+	if (codec != NULL)
+		rt5660_set_bias_level(codec, SND_SOC_BIAS_OFF);
+	
+	if(gpio_is_valid(rt5660->codec_micvdd_gpio))
+		gpio_direction_output(rt5660->codec_micvdd_gpio, !rt5660->codec_micvdd_gpio_active);
+	mdelay(40);
+	if(gpio_is_valid(rt5660->codec_avdd_gpio))
+		gpio_direction_output(rt5660->codec_avdd_gpio, !rt5660->codec_avdd_gpio_active);
+	mdelay(5);
+	if(gpio_is_valid(rt5660->codec_spkvdd_gpio))
+		gpio_direction_output(rt5660->codec_spkvdd_gpio, !rt5660->codec_spkvdd_gpio_active);
+}
+#endif
+
 static struct i2c_driver rt5660_i2c_driver = {
 	.driver = {
 		.name = "rt5660",
@@ -1501,6 +1549,9 @@ static struct i2c_driver rt5660_i2c_driver = {
 	},
 	.probe = rt5660_i2c_probe,
 	.remove   = rt5660_i2c_remove,
+#ifdef CONFIG_ARCH_ADVANTECH
+	.shutdown = rt5660_i2c_shutdown,
+#endif
 	.id_table = rt5660_i2c_id,
 };
 module_i2c_driver(rt5660_i2c_driver);
