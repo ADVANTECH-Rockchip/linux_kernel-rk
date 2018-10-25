@@ -61,6 +61,10 @@ static int of_parse_display_timing(const struct device_node *np,
 {
 	u32 val = 0;
 	int ret = 0;
+#ifdef CONFIG_ARCH_ADVANTECH
+	int name_length;
+#endif
+
 #if defined(CONFIG_FB_ROCKCHIP)
 	struct property *prop;
 	int length;
@@ -98,6 +102,19 @@ static int of_parse_display_timing(const struct device_node *np,
 		dt->flags |= DISPLAY_FLAGS_DOUBLESCAN;
 	if (of_property_read_bool(np, "doubleclk"))
 		dt->flags |= DISPLAY_FLAGS_DOUBLECLK;
+
+#ifdef CONFIG_ARCH_ADVANTECH
+	name_length = strlen(np->name);
+	dt->name= kzalloc(name_length+1, GFP_KERNEL);
+	if (dt->name)
+		memcpy(dt->name,np->name,name_length);
+#endif
+
+#if defined(CONFIG_ARCH_ADVANTECH) && !defined(CONFIG_FB_ROCKCHIP)
+	if (!of_property_read_u32(np, "screen-type", &val))
+		dt->screen_type = val;
+#endif
+
 #if defined(CONFIG_FB_ROCKCHIP)
 	if (!of_property_read_u32(np, "swap-rg", &val))
 		dt->flags |= val ? DISPLAY_FLAGS_SWAP_RG : 0;
@@ -194,10 +211,20 @@ struct display_timings *of_get_display_timings(struct device_node *np)
 	struct device_node *native_mode;
 	struct display_timings *disp;
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	struct device_node *native_edp_mode;
+	struct device_node *native_lvds_mode;
+#endif
+
+
 	if (!np)
 		return NULL;
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	timings_np = of_parse_phandle(np, "display-timings", 0);
+#else
 	timings_np = of_get_child_by_name(np, "display-timings");
+#endif
 	if (!timings_np) {
 		pr_err("%s: could not find display-timings node\n",
 			of_node_full_name(np));
@@ -227,6 +254,40 @@ struct display_timings *of_get_display_timings(struct device_node *np)
 
 	native_mode = entry;
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	entry = of_parse_phandle(timings_np, "native-edp-mode", 0);
+	/* assume first child as native mode if none provided */
+	if (!entry)
+		entry = of_get_next_child(timings_np, NULL);
+	/* if there is no child, it is useless to go on */
+	if (!entry) {
+		pr_err("%s: no timing specifications given\n",
+			of_node_full_name(np));
+		goto entryfail;
+	}
+
+	pr_debug("%s: using %s as default timing\n",
+		of_node_full_name(np), entry->name);
+
+	native_edp_mode = entry;
+
+	entry = of_parse_phandle(timings_np, "native-lvds-mode", 0);
+	/* assume first child as native mode if none provided */
+	if (!entry)
+		entry = of_get_next_child(timings_np, NULL);
+	/* if there is no child, it is useless to go on */
+	if (!entry) {
+		pr_err("%s: no timing specifications given\n",
+			of_node_full_name(np));
+		goto entryfail;
+	}
+
+	pr_debug("%s: using %s as default timing\n",
+		of_node_full_name(np), entry->name);
+
+	native_lvds_mode = entry;
+#endif
+
 	disp->num_timings = of_get_child_count(timings_np);
 	if (disp->num_timings == 0) {
 		/* should never happen, as entry was already found above */
@@ -244,6 +305,11 @@ struct display_timings *of_get_display_timings(struct device_node *np)
 
 	disp->num_timings = 0;
 	disp->native_mode = 0;
+#ifdef CONFIG_ARCH_ADVANTECH
+	disp->native_edp_mode = 0;
+	disp->native_lvds_mode = 0;
+#endif
+
 
 	for_each_child_of_node(timings_np, entry) {
 		struct display_timing *dt;
@@ -270,6 +336,13 @@ struct display_timings *of_get_display_timings(struct device_node *np)
 
 		if (native_mode == entry)
 			disp->native_mode = disp->num_timings;
+	#ifdef CONFIG_ARCH_ADVANTECH
+		if (native_edp_mode == entry)
+			disp->native_edp_mode = disp->num_timings;
+
+		if (native_lvds_mode == entry)
+			disp->native_lvds_mode = disp->num_timings;
+	#endif
 
 		disp->timings[disp->num_timings] = dt;
 		disp->num_timings++;

@@ -2,12 +2,13 @@
  * Advantech. LCD_G070VW01
  *
  */
-
-#if 0
 / {
 	disp_timings: display-timings {
-#endif
 		lvds_g070vw01: lvds-g070vw01 {
+			rockchip,data-mapping = "vesa";
+			rockchip,data-width = <24>;
+			rockchip,output = "lvds";
+
 			screen-type = <SCREEN_LVDS>;
 			lvds-format = <LVDS_8BIT_1>;
 			out-face    = <OUT_P888>;
@@ -63,8 +64,5 @@
 				0x000000e1 0x000000e3 0x000000e5 0x000000e7 0x000000e9 0x000000eb 0x000000ed 0x000000ef
 				0x000000f1 0x000000f3 0x000000f5 0x000000f7 0x000000f9 0x000000fb 0x000000fd 0x000000ff>;
 		};
-#if 0
 	};
 };
-#endif
-

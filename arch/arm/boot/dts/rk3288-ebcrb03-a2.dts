@@ -48,8 +48,10 @@
 #include "rk3288.dtsi"
 #include "rk3288-linux.dtsi"
 
-#define LCD_EDP
-//#define LCD_LVDS
+// edp panel
+#include <dt-bindings/display/screen-timing/lcd-ch7525a.dtsi>
+
+
 
 / {
 	compatible = "rockchip,rk3288-ebcrb03-a2", "rockchip,rk3288";
@@ -97,26 +99,26 @@
 	};
 
     wireless-wlan {
-        compatible = "wlan-platdata";
-        rockchip,grf = <&grf>;
-        wifi_chip_type = "rtl8723bs";
-		sdio_vref = <3300>; 
+		compatible = "wlan-platdata";
+		rockchip,grf = <&grf>;
+		wifi_chip_type = "rtl8723bs";
+		sdio_vref = <3300>;
 		//keep_wifi_power_on = <1>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&wifi_pwr_h>;
-                pinctrl-1 = <&wifi_enable_h>;
-        WIFI,host_wake_irq = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>; // WIFI_WAKE_HOST
-        WIFI,poweren_gpio = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
-        WIFI,reset_gpio = <&gpio5 RK_PC2 GPIO_ACTIVE_HIGH>;
-        status = "okay";
+		//pinctrl-1 = <&wifi_enable_h>;
+		WIFI,host_wake_irq = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>; // WIFI_WAKE_HOST
+		WIFI,poweren_gpio = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
+		//WIFI,reset_gpio = <&gpio5 RK_PC2 GPIO_ACTIVE_HIGH>;
+		status = "okay";
     };
 
 	wireless-bluetooth {
         compatible = "bluetooth-platdata";
         uart_rts_gpios = <&gpio4 RK_PC3 GPIO_ACTIVE_LOW>;
         pinctrl-names = "default", "rts_gpio";
-        pinctrl-0 = <&uart0_rts>;
-        pinctrl-1 = <&uart0_gpios>;
+        pinctrl-0 = <&uart0_rts &bt_pwr_h>;
+        pinctrl-1 = <&uart0_rts_gpio &bt_pwr_h>;
         BT,power_gpio = <&gpio5 RK_PC1 GPIO_ACTIVE_HIGH>;
         //BT,reset_gpio    = <&gpio4 29 GPIO_ACTIVE_HIGH>;
         //BT,wake_gpio     = <&gpio4 26 GPIO_ACTIVE_HIGH>;
@@ -138,31 +140,6 @@
 		rockchip,model = "rockchip_rt5660";
         rockchip,i2s-controller = <&i2s>;
         rockchip,audio-codec = <&rt5660>;
-		
-		#if 0
-		dais {
-			dai0 {
-				audio-codec = <&rt5660>;
-				audio-controller = <&i2s>;
-				format = "i2s";
-				//continuous-clock;
-				//bitclock-inversion;
-				//frame-inversion;
-				//bitclock-master;
-				//frame-master;
-			};
-			dai1 {
-				audio-codec = <&rt5660>;
-				audio-controller = <&i2s>;
-				format = "dsp_a";
-				//continuous-clock;
-				bitclock-inversion;
-				//frame-inversion;
-				//bitclock-master;
-				//frame-master;
-			};
-		};
-		#endif
 	};
 
 	dwc_control_usb: dwc-control-usb@ff770284 {
@@ -214,30 +191,25 @@
 		};
 	};
 
-#ifdef LCD_EDP
 	edp_panel {
 		compatible = "simple-panel";
 		status = "okay";
+		panel_type = <SCREEN_EDP>;
+		display-timings = <&disp_timings>;
 		
 		ports {
 			panel_in_edp: endpoint {
 				remote-endpoint = <&edp_out_panel>;
 			};
 		};
-
-		display-timings {
-			native-mode = <&edp_1920x1080>;
-			#include <dt-bindings/display/screen-timing/lcd-ch7525a.dtsi>
-		};
 	};
-#endif
 
-#ifdef LCD_LVDS
 	lvds_panel
 	{
 		compatible = "simple-panel";
 		power-supply = <&vdd_lvds>;
 		backlight = <&backlight>;
+		panel_type = <SCREEN_LVDS>;
 		
 		bpc = <8>;
 		bus-format = <MEDIA_BUS_FMT_RGB888_1X24>;
@@ -245,30 +217,23 @@
 		enable-delay-ms = <120>;
 		unprepare-delay-ms = <120>;
 		disable-delay-ms = <120>;
-			
+
 		rockchip,data-mapping = "vesa";
 		rockchip,data-width = <24>;
 		rockchip,output = "lvds";
 	
-		status = "okay";
+		status = "disabled";
 		pinctrl-names = "default";
 		pinctrl-0 = <&vdd_lvds_pwr>;
+
+		display-timings = <&disp_timings>;
 		
 		ports {
 			panel_in_lvds: endpoint {
 				remote-endpoint = <&lvds_out_panel>;
 			};
 		};
-		
-		display-timings {
-			//native-mode = <&lvds_g215hvn01>;
-			//#include <dt-bindings/display/screen-timing/lcd-g215hvn01.dtsi>
-			
-			native-mode = <&lvds_g070vw01>;
-			#include <dt-bindings/display/screen-timing/lcd-g070vw01.dtsi>
-		};
 	};
-#endif
 
 	xin32k: xin32k {
 		compatible = "fixed-clock";
@@ -341,7 +306,7 @@
 		system-reset-gpio = <&gpio0 RK_PB2 GPIO_ACTIVE_LOW>;
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pcie_pwren &pcie_reset &pmic_rst>;
+		pinctrl-0 = <&pcie_pwren &pcie_reset>;
 	};
 };
 
@@ -358,22 +323,14 @@
 	status = "okay";
 };
 
-#if 0
-&disp_timings {
-	/* default display mode
-	 * only lvds or edp can be prmry screen
-	 * hdmi(720p) as extend screen
-	 */
-	native-mode = <&edp_1920x1080>;
-	use-dts-screen = <0>;
-	//prmry-screen = <&hdmi_1080p>;
-	//extend-screen = <&lvds_lmt101dngfdd>;
-};
-#endif
 
-#ifdef LCD_LVDS
+&disp_timings {
+	native-mode = <&edp_1920x1080>;
+	native-edp-mode = <&edp_1920x1080>;
+};
+
 &lvds{
-	status = "okay";
+	status = "disabled";
 
 	ports {
 		lvds_out: port@1 {
@@ -390,18 +347,15 @@
 };
 
 &lvds_in_vopb {
-    status = "disabled";
+    status = "okay";
 };
 
 &lvds_in_vopl {
     status = "okay";
 };
 
-#endif
-
-#ifdef LCD_EDP
 &edp {
-	force-hpd;
+    force-hpd;
     lane_count = <4>;
     status = "okay";
 
@@ -429,7 +383,6 @@
 &edp_in_vopl {
     status = "okay";
 };
-#endif
 
 &hdmi_in_vopb {
     status = "okay";
@@ -479,7 +432,7 @@
 	num-slots = <1>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&emmc_clk &emmc_cmd &emmc_pwr &emmc_bus8>;
-	max-frequency = <100000000>;
+	max-frequency = <75000000>;
 	mmc-hs200-1_8v;
 	mmc-ddr-1_8v;
 	status = "okay";
@@ -489,10 +442,10 @@
 	supports-sd;
 	bus-width = <4>;
 	cap-mmc-highspeed;
-	sd-uhs-sdr12;
-	sd-uhs-sdr25;
-	sd-uhs-sdr50;
-	sd-uhs-sdr104;
+	//sd-uhs-sdr12;
+	//sd-uhs-sdr25;
+	//sd-uhs-sdr50;
+	//sd-uhs-sdr104;
 	cap-sd-highspeed;
 	card-detect-delay = <200>;
 	disable-wp;			/* wp not hooked up */
@@ -510,10 +463,10 @@
 
 	bus-width = <4>;
 	cap-sd-highspeed;
-	cap-sdio-irq;
+	//cap-sdio-irq;
 	disable-wp;
 	keep-power-in-suspend;
-	//mmc-pwrseq = <&sdio_pwrseq>;
+	mmc-pwrseq = <&sdio_pwrseq>;
 	non-removable;
 	num-slots = <1>;
 	pinctrl-names = "default";
@@ -647,7 +600,7 @@
 				regulator-name = "vdd_10";
 				regulator-state-mem {
 					regulator-on-in-suspend;
-					regulator-suspend-microvolt = <1000000>;
+					regulator-suspend-microvolt = <1100000>;
 				};
 			};
 
@@ -755,6 +708,8 @@
 	rt5660: rt5660@1c {
 		#sound-dai-cells = <0>;
 		compatible = "realtek,rt5660";
+		rockchip,cru = <&cru>;
+		rockchip,grf = <&grf>;
 		reg = <0x1c>;
 		codec-avdd-gpio = <&gpio3 10 GPIO_ACTIVE_LOW>;
 		codec-avdd-delay = <100>;
@@ -769,7 +724,7 @@
 		interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&i2s0_mclk>;
+		pinctrl-0 = <&i2s0_mclk &codec_avdd &codec_micvdd &codec_spkvdd &amp_shutdown &amp_mute>;
 	};
 };
 
@@ -857,7 +812,7 @@
 
 &uart0 {
 	status = "okay";
-	pinctrl-0 = <&uart0_xfer>;
+	pinctrl-0 = <&uart0_xfer &uart0_cts>;
 	dmas = <&dmac_peri 1>, <&dmac_peri 2>;
 	dma-names = "tx", "rx";
 };
@@ -926,7 +881,20 @@
 	status = "okay";
 };
 
+&cpu0_opp_table {
+	/delete-node/ opp-126000000;
+	/delete-node/ opp-216000000;
+	/delete-node/ opp-696000000;
+	/delete-node/ opp-1512000000;
+};
+
+&gpu_opp_table {
+	/delete-node/ opp-100000000;
+};
+
 &tsadc {
+	rockchip,grf = <&grf>;
+	rockchip,hw-tshut-mode = <1>; /* tshut mode 0:CRU 1:GPIO */
 	rockchip,hw-tshut-polarity = <0>; /* tshut polarity 0:LOW 1:HIGH */
 	status = "okay";
 };
@@ -950,6 +918,24 @@
 	pcfg_pull_down_drv_2ma: pcfg-pull-down-drv-2ma {
 		bias-pull-down;
 		drive-strength = <2>;
+	};
+
+	codec {
+		codec_avdd: codec-avdd {
+			rockchip,pins = <3 10 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		codec_micvdd: codec-micvdd {
+			rockchip,pins = <3 11 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		codec_spkvdd: codec-spkvdd {
+			rockchip,pins = <3 12 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		amp_shutdown: amp-shutdown {
+			rockchip,pins = <3 13 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		amp_mute: amp-mute {
+			rockchip,pins = <6 5 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
 	};
 
 	pmic {
@@ -1008,8 +994,11 @@
 	};
 
 	wireless-bluetooth {
-		uart0_gpios: uart0-gpios {
+		uart0_rts_gpio: uart0-rts-gpio {
 			rockchip,pins = <4 19 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		bt_pwr_h: bt-pwr-h {
+			rockchip,pins =<5 17 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 

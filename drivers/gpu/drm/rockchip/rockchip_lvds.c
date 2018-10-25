@@ -31,6 +31,10 @@
 
 #include <video/display_timing.h>
 
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <video/of_display_timing.h>
+#endif
+
 #include "rockchip_drm_drv.h"
 #include "rockchip_drm_vop.h"
 #include "rockchip_lvds.h"
@@ -482,6 +486,10 @@ static const struct drm_encoder_funcs rockchip_lvds_encoder_funcs = {
 	.destroy = rockchip_lvds_encoder_destroy,
 };
 
+#ifdef CONFIG_ARCH_ADVANTECH
+extern char* get_setting_lvds_name(void);
+#endif
+
 static int rockchip_lvds_bind(struct device *dev, struct device *master,
 			     void *data)
 {
@@ -493,6 +501,12 @@ static int rockchip_lvds_bind(struct device *dev, struct device *master,
 	struct device_node  *port, *endpoint;
 	int ret, i;
 	const char *name;
+#ifdef CONFIG_ARCH_ADVANTECH
+	struct device_node *timings_np;
+	struct device_node *timing_np;
+	char *screen_name;
+	struct display_timings *disp;
+#endif
 
 	port = of_graph_get_port_by_id(dev->of_node, 1);
 	if (!port) {
@@ -529,6 +543,46 @@ static int rockchip_lvds_bind(struct device *dev, struct device *master,
 		ret  = -EPROBE_DEFER;
 		goto err_put_remote;
 	}
+
+#ifdef CONFIG_ARCH_ADVANTECH
+	screen_name = get_setting_lvds_name();
+	disp = of_get_display_timings(remote);
+	if(!screen_name)
+		screen_name = disp->timings[disp->native_lvds_mode]->name;
+
+	for (i = 0; i <disp->num_timings; i++){
+		if(strlen(disp->timings[i]->name) != strlen(screen_name))
+			continue;
+
+		if(!memcmp(disp->timings[i]->name, screen_name, strlen(screen_name)))
+			break;
+	}
+
+	if(i >= disp->num_timings && disp->timings[disp->native_lvds_mode]->name)
+		screen_name = disp->timings[disp->native_lvds_mode]->name;
+
+	if(strlen(screen_name) > 4)
+	{
+		timings_np = of_parse_phandle(remote, "display-timings", 0);
+		if (!timings_np) {
+			dev_err("%s: could not find display-timings node\n",
+				of_node_full_name(remote));
+			ret = -EINVAL;
+			goto err_put_remote;
+		}
+
+		timing_np = of_get_child_by_name(timings_np, screen_name);
+		if (!timing_np) {
+			dev_err("%s: could not find display-timings node\n",
+				of_node_full_name(timings_np));
+			ret = -EINVAL;
+			goto err_put_remote;
+		}
+
+		remote = timing_np;
+
+	}
+#endif
 
 	if (of_property_read_string(remote, "rockchip,output", &name))
 		/* default set it as output rgb */

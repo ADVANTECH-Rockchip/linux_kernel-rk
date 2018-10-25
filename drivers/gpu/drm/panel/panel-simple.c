@@ -40,6 +40,10 @@
 #include <linux/of_graph.h>
 #include <video/videomode.h>
 
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <dt-bindings/display/rk_fb.h>
+#endif
+
 struct cmd_ctrl_hdr {
 	u8 dtype;	/* data type */
 	u8 wait;	/* ms */
@@ -96,6 +100,9 @@ struct panel_desc {
 	} delay;
 
 	u32 bus_format;
+#ifdef CONFIG_ARCH_ADVANTECH
+	unsigned int type;
+#endif
 };
 
 struct panel_simple {
@@ -470,18 +477,90 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
 }
 
 #ifdef CONFIG_ARCH_ADVANTECH
-static int panel_simple_of_get_other_mode(struct panel_simple *panel)
+static char lcd_prmry_screen[30]={0};
+static char lcd_extend_screen[30]={0};
+
+static int __init setup_prmry_screen(char *buf)
+{
+	u32 len;
+
+	len = (strlen(buf) > (sizeof(lcd_prmry_screen)-1)) ? (sizeof(lcd_prmry_screen)-1) : strlen(buf);
+	memcpy(lcd_prmry_screen,buf,len);
+
+	return 0;
+}
+
+static int __init setup_extend_screen(char *buf)
+{
+	u32 len;
+
+	len = (strlen(buf) > (sizeof(lcd_extend_screen)-1)) ? (sizeof(lcd_extend_screen)-1) : strlen(buf);
+	memcpy(lcd_extend_screen,buf,len);
+
+	return 0;
+}
+
+
+early_param("prmry_screen", setup_prmry_screen);
+early_param("extend_screen", setup_extend_screen);
+
+
+char* get_setting_lvds_name(void)
+{
+	if(!memcmp(lcd_prmry_screen,"lvds",4))
+		return lcd_prmry_screen;
+
+	if(!memcmp(lcd_extend_screen,"lvds",4))
+		return lcd_extend_screen;
+
+	return NULL;
+}
+
+char* get_setting_edp_name(void)
+{
+	if(!memcmp(lcd_prmry_screen,"edp",3))
+		return lcd_prmry_screen;
+
+	if(!memcmp(lcd_extend_screen,"edp",3))
+		return lcd_extend_screen;
+
+	return NULL;
+}
+
+int panel_is_lvds(int type)
+{
+	if(type == SCREEN_LVDS || 
+		type == SCREEN_DUAL_LVDS ||
+		type == SCREEN_LVDS_10BIT ||
+		type == SCREEN_DUAL_LVDS_10BIT)
+		return 1;
+
+	return 0;
+}
+
+
+int panel_is_edp(int type)
+{
+	if(type == SCREEN_EDP)
+		return 1;
+
+	return 0;
+}
+
+static int panel_simple_of_get_lvds_mode(struct panel_simple *panel)
 {
 	struct drm_connector *connector = panel->base.connector;
 	struct drm_device *drm = panel->base.drm;
 	struct drm_display_mode *mode;
 	struct device_node *timings_np;
 	int ret;
-	unsigned int i, num = 0;
+	unsigned int i;
 	struct display_timings *disp;
+	char* screen_name;
+	int native_index;
 
-	timings_np = of_get_child_by_name(panel->dev->of_node,
-					  "display-timings");
+	timings_np = of_parse_phandle(panel->dev->of_node,
+					  "display-timings", 0);
 	if (!timings_np) {
 		dev_err(panel->dev, "%s: failed to find display-timings node\n", of_node_full_name(panel->dev->of_node));
 		return 0;
@@ -494,7 +573,93 @@ static int panel_simple_of_get_other_mode(struct panel_simple *panel)
 		return 0;
 	}
 
+	screen_name = get_setting_lvds_name();
+	if(screen_name){
+		for (i = 0; i <disp->num_timings; i++){
+			if(strlen(disp->timings[i]->name) != strlen(screen_name))
+				continue;
+
+			if(!memcmp(disp->timings[i]->name,screen_name,strlen(screen_name)))
+				break;
+		}
+
+		if(i < disp->num_timings){
+			native_index = i;
+		}else{
+			native_index = disp->native_lvds_mode;
+		}
+	}else{
+		native_index = disp->native_lvds_mode;
+	}
+
+	mode = drm_mode_create(drm);
+	if (!mode){
+		return 0;
+	}
+
+	ret = of_get_drm_display_mode(panel->dev->of_node, mode, native_index);
+	if (ret) {
+		dev_dbg(panel->dev, "failed to find dts display timings\n");
+		drm_mode_destroy(drm, mode);
+		return 0;
+	}
+
+	drm_mode_set_name(mode);
+	mode->type |= DRM_MODE_TYPE_DEFAULT;
+	drm_mode_probed_add(connector, mode);
+
+	return 1;
+}
+
+static int panel_simple_of_get_edp_mode(struct panel_simple *panel)
+{
+	struct drm_connector *connector = panel->base.connector;
+	struct drm_device *drm = panel->base.drm;
+	struct drm_display_mode *mode;
+	struct device_node *timings_np;
+	int ret;
+	unsigned int i, num = 0;
+	struct display_timings *disp;
+	char* screen_name;
+	int native_index;
+
+	timings_np = of_parse_phandle(panel->dev->of_node,
+					  "display-timings", 0);
+	if (!timings_np) {
+		dev_err(panel->dev, "%s: failed to find display-timings node\n", of_node_full_name(panel->dev->of_node));
+		return 0;
+	}
+	of_node_put(timings_np);
+
+	disp = of_get_display_timings(panel->dev->of_node);
+	if (!disp) {
+		pr_err("%s: no timings specified\n", of_node_full_name(panel->dev->of_node));
+		return 0;
+	}
+
+	screen_name = get_setting_edp_name();
+	if(screen_name){
+		for (i = 0; i <disp->num_timings; i++){
+			if(strlen(disp->timings[i]->name) != strlen(screen_name))
+				continue;
+
+			if(!memcmp(disp->timings[i]->name,screen_name,strlen(screen_name)))
+				break;
+		}
+
+		if(i < disp->num_timings){
+			native_index = i;
+		}else{
+			native_index = disp->native_edp_mode;
+		}
+	}else{
+		native_index = disp->native_edp_mode;
+	}
+
 	for (i = 0; i <disp->num_timings; i++){
+		if(!panel_is_edp(disp->timings[i]->screen_type))
+			continue;
+
 		mode = drm_mode_create(drm);
 		if (!mode)
 			continue;
@@ -507,7 +672,7 @@ static int panel_simple_of_get_other_mode(struct panel_simple *panel)
 		}
 
 		drm_mode_set_name(mode);
-		if(i == disp->num_timings){
+		if(i == native_index){
 			mode->type |= DRM_MODE_TYPE_PREFERRED;
 		}
 		drm_mode_probed_add(connector, mode);
@@ -516,7 +681,9 @@ static int panel_simple_of_get_other_mode(struct panel_simple *panel)
 
 	return num;
 }
-#else
+
+#endif
+
 static int panel_simple_of_get_native_mode(struct panel_simple *panel)
 {
 	struct drm_connector *connector = panel->base.connector;
@@ -551,7 +718,6 @@ static int panel_simple_of_get_native_mode(struct panel_simple *panel)
 
 	return 1;
 }
-#endif
 
 static int panel_simple_regulator_enable(struct drm_panel *panel)
 {
@@ -754,7 +920,12 @@ static int panel_simple_get_modes(struct drm_panel *panel)
 
 
 #ifdef CONFIG_ARCH_ADVANTECH
-	num += panel_simple_of_get_other_mode(p);
+	if(p->desc->type == SCREEN_EDP)
+		num += panel_simple_of_get_edp_mode(p);
+	else if(p->desc->type == SCREEN_LVDS)
+		num += panel_simple_of_get_lvds_mode(p);
+	else
+		num += panel_simple_of_get_native_mode(p);
 #else
 	/* add device node plane modes */
 	num += panel_simple_of_get_native_mode(p);
@@ -844,6 +1015,13 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 		of_desc->size.width = val;
 	if (!of_property_read_u32(dev->of_node, "height-mm", &val))
 		of_desc->size.height = val;
+
+#ifdef CONFIG_ARCH_ADVANTECH
+	of_desc->type = 0xFF;
+	if (!of_property_read_u32(dev->of_node, "panel_type", &val))
+		of_desc->type = val;
+#endif
+
 
 	panel->enabled = false;
 	panel->prepared = false;

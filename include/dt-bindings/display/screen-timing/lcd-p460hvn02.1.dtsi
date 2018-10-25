@@ -2,12 +2,13 @@
  * Advantech. LCD_P460HVN02.1
  *
  */
-
-#if 0 
 / {
 	disp_timings: display-timings {
-#endif
 		lvds_p460hvn02: lvds-p460hvn02 {
+			rockchip,data-mapping = "vesa";
+			rockchip,data-width = <24>;
+			rockchip,output = "duallvds";
+
 			screen-type = <SCREEN_DUAL_LVDS>;
 			lvds-format = <LVDS_10BIT_1>;
 			out-face    = <OUT_P101010>;
@@ -63,7 +64,5 @@
 				0x000000e1 0x000000e3 0x000000e5 0x000000e7 0x000000e9 0x000000eb 0x000000ed 0x000000ef
 				0x000000f1 0x000000f3 0x000000f5 0x000000f7 0x000000f9 0x000000fb 0x000000fd 0x000000ff>;
 		};
-#if 0
 	};
 };
-#endif

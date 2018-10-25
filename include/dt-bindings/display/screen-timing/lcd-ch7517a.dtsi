@@ -2,10 +2,8 @@
  * Advantech. eDP to VGA chip ch7517a
  *
  */
-#if 0 
 / {
 	disp_timings: display-timings {
-#endif
 		edp_1920x1200: edp-1920x1200 {
 			screen-type = <SCREEN_EDP>;
 			out-face    = <OUT_P888>;
@@ -66,7 +64,5 @@
 			swap-rg = <0>;
 			swap-gb = <0>;
 		};
-#if 0
 	};
 };
-#endif
