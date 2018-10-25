@@ -406,7 +406,6 @@
 
 &edp {
     force-hpd;
-    lane_count = <2>;
     status = "okay";
 
     ports {
