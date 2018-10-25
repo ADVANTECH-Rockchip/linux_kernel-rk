@@ -213,7 +213,7 @@ static void dwc2_hsotg_init_fifo(struct dwc2_hsotg *hsotg)
 	u32 val;
 
 	/* Reset fifo map if not correctly cleared during previous session */
-	WARN_ON(hsotg->fifo_map);
+	/*WARN_ON(hsotg->fifo_map);*/
 	hsotg->fifo_map = 0;
 
 	/* set RX/NPTX FIFO sizes */
