@@ -940,7 +940,11 @@ static void __exit rfkill_wlan_exit(void)
 	platform_driver_unregister(&rfkill_wlan_driver);
 }
 
+#ifdef CONFIG_ARCH_ADVANTECH
+fs_initcall_sync(rfkill_wlan_init);
+#else
 module_init(rfkill_wlan_init);
+#endif
 module_exit(rfkill_wlan_exit);
 
 MODULE_DESCRIPTION("rock-chips rfkill for wifi v0.1");
