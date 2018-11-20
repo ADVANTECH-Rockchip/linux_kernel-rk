@@ -336,8 +336,13 @@ static const struct snd_kcontrol_new rt5660_snd_controls[] = {
 	/* Speaker Output Volume */
 	SOC_SINGLE("Speaker Playback Switch", RT5660_SPK_VOL, RT5660_L_MUTE_SFT,
 		1, 1),
+#ifdef CONFIG_ARCH_ADVANTECH
+	SOC_SINGLE_TLV("DAC1 Playback Volume", RT5660_SPK_VOL,
+		RT5660_L_VOL_SFT, 39, 1, rt5660_out_vol_tlv),
+#else
 	SOC_SINGLE_TLV("Speaker Playback Volume", RT5660_SPK_VOL,
 		RT5660_L_VOL_SFT, 39, 1, rt5660_out_vol_tlv),
+#endif
 
 	/* OUTPUT Control */
 	SOC_DOUBLE("OUT Playback Switch", RT5660_LOUT_VOL, RT5660_L_MUTE_SFT,
@@ -346,9 +351,15 @@ static const struct snd_kcontrol_new rt5660_snd_controls[] = {
 		RT5660_R_VOL_SFT, 39, 1, rt5660_out_vol_tlv),
 
 	/* DAC Digital Volume */
+#ifdef CONFIG_ARCH_ADVANTECH
+	SOC_DOUBLE_TLV("Speaker Playback Volume", RT5660_DAC1_DIG_VOL,
+		RT5660_DAC_L1_VOL_SFT, RT5660_DAC_R1_VOL_SFT, 87, 0,
+		rt5660_dac_vol_tlv),
+#else
 	SOC_DOUBLE_TLV("DAC1 Playback Volume", RT5660_DAC1_DIG_VOL,
 		RT5660_DAC_L1_VOL_SFT, RT5660_DAC_R1_VOL_SFT, 87, 0,
 		rt5660_dac_vol_tlv),
+#endif
 
 	/* IN1/IN2/IN3 Control */
 	SOC_SINGLE_TLV("IN1 Boost Volume", RT5660_IN1_IN2, RT5660_BST_SFT1, 69,
