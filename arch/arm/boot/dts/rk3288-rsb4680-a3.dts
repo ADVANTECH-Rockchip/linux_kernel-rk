@@ -61,6 +61,15 @@
 	compatible = "rockchip,rk3288-rsb4680-a3", "rockchip,rk3288";
 	model = "RSB-4680 a103-1";
 
+	aliases {
+		hdmi = &hdmi;
+		edp = &edp;
+		edp_phy = &edp_phy;
+		lvds = &lvds;
+		lvds_in_vopl = &lvds_in_vopl;
+		lvds_in_vopb = &lvds_in_vopb;
+	};
+
 	chosen {
 		bootargs = "earlyprintk console=ttyFIQ0 rw root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait";
 	};
@@ -397,11 +406,11 @@
 };
 
 &lvds_in_vopb {
-    status = "okay";
+    status = "disabled";
 };
 
 &lvds_in_vopl {
-    status = "okay";
+    status = "disabled";
 };
 
 &edp {

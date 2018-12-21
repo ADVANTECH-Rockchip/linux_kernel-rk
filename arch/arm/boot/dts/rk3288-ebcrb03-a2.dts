@@ -57,6 +57,15 @@
 	compatible = "rockchip,rk3288-ebcrb03-a2", "rockchip,rk3288";
 	model = "EBC-RB03 a102-1";
 
+	aliases {
+		hdmi = &hdmi;
+		edp = &edp;
+		edp_phy = &edp_phy;
+		lvds = &lvds;
+		lvds_in_vopl = &lvds_in_vopl;
+		lvds_in_vopb = &lvds_in_vopb;
+	};
+
 	chosen {
 		bootargs = "earlyprintk console=ttyFIQ0 rw root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait";
 	};
