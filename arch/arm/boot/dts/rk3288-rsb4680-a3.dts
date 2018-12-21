@@ -446,6 +446,11 @@
 	#size-cells = <0>;
 	#sound-dai-cells = <0>;
 	status = "okay";
+	rockchip,phy-table = 
+	             <74250000  0x8009 0x0004 0x0272>,
+	             <165000000 0x802b 0x0004 0x0209>,
+	             <297000000 0x803d 0x0005 0x0108>,
+	             <594000000 0x8039 0x0000 0x019d>;
 };
 
 &vopb {
