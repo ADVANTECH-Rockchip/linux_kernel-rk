@@ -56,6 +56,7 @@
 #include <dt-bindings/display/screen-timing/lcd-g150xgel05.dtsi>
 #include <dt-bindings/display/screen-timing/lcd-g215hvn01.dtsi>
 #include <dt-bindings/display/screen-timing/lcd-p460hvn02.1.dtsi>
+#include <dt-bindings/display/screen-timing/lcd-idk1110wp.dtsi>
 
 / {
 	compatible = "rockchip,rk3288-rsb4680-a3", "rockchip,rk3288";
