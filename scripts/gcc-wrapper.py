@@ -93,7 +93,7 @@ def run_gcc():
     try:
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         for line in proc.stderr:
-            print (line.decode("utf-8"), end="")
+            print (line)
             #interpret_warning(line.decode("utf-8"))
         if do_exit:
             sys.exit(1)
