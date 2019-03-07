@@ -53,7 +53,6 @@
 #include "hcd.h"
 #include "debug.h"
 
-extern void usb20otg_power_enable(int enable);
 static const char dwc2_driver_name[] = "dwc2";
 
 static const struct dwc2_core_params params_hi6220 = {
@@ -676,7 +675,7 @@ static int dwc2_driver_probe(struct platform_device *dev)
 		}
 	}
 	if ((dwc2_readl(hsotg->regs + GINTSTS) & GINTSTS_CURMODE_HOST) != 0) {
-		usb20otg_power_enable(1);
+		//usb20otg_power_enable(1);
 		retval = dwc2_lowlevel_hw_enable(hsotg);
 		if (retval)
 			dev_err(hsotg->dev, "host mode hw enable fail\n");
