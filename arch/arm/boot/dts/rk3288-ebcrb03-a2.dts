@@ -305,8 +305,11 @@
 };
 
 &edp {
-    force-hpd;
+    //force-hpd;
     status = "okay";
+    //pinctrl-names = "default";
+    //pinctrl-0 = <&edp_hpd>;
+    hpd-gpios = <&gpio7 RK_PB3 GPIO_ACTIVE_HIGH>;
 
     ports {
 		edp_out: port@1 {
