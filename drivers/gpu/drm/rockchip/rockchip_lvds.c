@@ -211,6 +211,10 @@ static int innov2_lvds_power_on(struct rockchip_lvds *lvds)
 		lvds_writel(lvds, RK3288_LVDS_CH0_REG5, 0x00);
 		lvds_writel(lvds, RK3288_LVDS_CH0_REGD,
 			    RK3288_LVDS_PLL_PREDIV_REGD(0x0a));
+	#ifdef CONFIG_ARCH_ADVANTECH
+		lvds_writel(lvds, RK3288_LVDS_CH0_REG8, 0xfe);
+	#endif
+
 		lvds_writel(lvds, RK3288_LVDS_CH0_REG20,
 			    RK3288_LVDS_CH0_REG20_LSB);
 	}
