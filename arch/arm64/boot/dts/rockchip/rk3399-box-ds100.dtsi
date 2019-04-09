@@ -132,7 +132,7 @@
 		 * - SDIO_RESET_L_WL_REG_ON
 		 * - PDN (power down when low)
 		 */
-		reset-gpios = <&gpio4 21 GPIO_ACTIVE_LOW>;
+		//reset-gpios = <&gpio4 21 GPIO_ACTIVE_LOW>;
 	};
 
 	wireless-wlan {
@@ -154,9 +154,9 @@
 		pinctrl-0 = <&uart0_rts>;
 		pinctrl-1 = <&uart0_gpios>;
 		/* BT,power_gpio  = <&gpio3 19 GPIO_ACTIVE_HIGH>; */
-		//BT,reset_gpio    = <&gpio0 9 GPIO_ACTIVE_HIGH>;
-		//BT,wake_gpio     = <&gpio2 26 GPIO_ACTIVE_HIGH>;
-		//BT,wake_host_irq = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+		BT,reset_gpio    = <&gpio0 9 GPIO_ACTIVE_LOW>;
+		BT,wake_gpio     = <&gpio2 26 GPIO_ACTIVE_HIGH>;
+		BT,wake_host_irq = <&gpio0 4 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
 
