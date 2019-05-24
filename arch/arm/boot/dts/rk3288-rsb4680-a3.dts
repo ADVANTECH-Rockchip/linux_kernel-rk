@@ -60,7 +60,7 @@
 
 / {
 	compatible = "rockchip,rk3288-rsb4680-a3", "rockchip,rk3288";
-	model = "RSB-4680 a103-1";
+	model = "RSB-4680 AKS00000000 V1000";
 
 	aliases {
 		hdmi = &hdmi;
