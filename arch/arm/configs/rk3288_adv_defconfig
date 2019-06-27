@@ -1724,6 +1724,7 @@ CONFIG_RTL8723BS=y
 # CONFIG_RTL8723BU is not set
 # CONFIG_RTL8723CS is not set
 # CONFIG_RTL8723DS is not set
+# CONFIG_RTL88x2BU is not set
 # CONFIG_MVL88W8977 is not set
 
 #
