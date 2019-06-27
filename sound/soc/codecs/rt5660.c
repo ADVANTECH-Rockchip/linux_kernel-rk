@@ -589,6 +589,14 @@ static int rt5660_lout_event(struct snd_soc_dapm_widget *w,
 			RT5660_LOUT_CO_MASK | RT5660_LOUT_CB_MASK,
 			RT5660_LOUT_CO_EN | RT5660_LOUT_CB_PU);
 
+	#ifdef CONFIG_ARCH_ADVANTECH
+		if(rt5660->disable_class_d)
+		{
+			snd_soc_update_bits(codec, RT5660_PWR_DIG1,
+				RT5660_PWR_CLS_D, 0);
+		}
+	#endif
+
 		mdelay(50);
 		gpio_direction_output(rt5660->amp_mute_gpio, rt5660->amp_mute_gpio_active);
 		break;
@@ -1399,6 +1407,12 @@ static int rt5660_parse_dt(struct rt5660_priv *rt5660, struct device *dev)
 		}
 	} else {
 		dev_err(dev,"Can not read property amp-mute-gpio\n");
+	}
+
+	if(of_property_read_u32(node,"disable-class-d",&rt5660->disable_class_d))
+	{
+		dev_err(dev,"disable-class-d get error,use 0 as default \n");
+		rt5660->disable_class_d = 0;
 	}
 #endif
 

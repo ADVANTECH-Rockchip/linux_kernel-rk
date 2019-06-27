@@ -838,6 +838,7 @@ struct rt5660_priv {
 #ifdef CONFIG_ARCH_ADVANTECH
 	unsigned long	rk_cru_base;
 	unsigned long	rk_grf_base;
+	int disable_class_d;
 #endif
 
 	int sysclk;
