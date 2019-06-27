@@ -934,6 +934,12 @@ config HID_ALPS
 	  Support for ALPS devices.
 	  Say Y here if you have a ALPS device.
 
+config INPUT_ILITEK_TOUCH
+	tristate "ILITEK USB touch screen driver"
+	default n
+	---help---
+	  Support for ILITEK USB touch screen.
+
 endmenu
 
 endif # HID
