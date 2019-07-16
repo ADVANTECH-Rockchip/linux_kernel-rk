@@ -1314,10 +1314,16 @@ static int _rockchip_usb3_phy_power_on(struct rockchip_typec_phy *tcphy)
 	if (tcphy->mode == new_mode)
 		goto unlock_ret;
 
+	ret = reset_control_assert(tcphy->otg_rst);
+	if (ret < 0) {
+		dev_err(tcphy->dev, "failed to assert otg reset: %d\n", ret);
+		goto unlock_ret;
+	}
+
 	if (tcphy->mode == MODE_DISCONNECT) {
 		ret = tcphy_phy_init(tcphy, new_mode);
 		if (ret)
-			goto unlock_ret;
+			goto unlock_deassert;
 	}
 
 	/* wait TCPHY for pipe ready */
@@ -1328,7 +1334,7 @@ static int _rockchip_usb3_phy_power_on(struct rockchip_typec_phy *tcphy)
 
 			/* enable usb3 host */
 			tcphy_cfg_usb3_to_usb2_only(tcphy, false);
-			goto unlock_ret;
+			goto unlock_deassert;
 		}
 		usleep_range(10, 20);
 	}
@@ -1337,6 +1343,11 @@ static int _rockchip_usb3_phy_power_on(struct rockchip_typec_phy *tcphy)
 		tcphy_phy_deinit(tcphy);
 
 	ret = -ETIMEDOUT;
+
+unlock_deassert:
+	ret = reset_control_deassert(tcphy->otg_rst);
+	if (ret < 0)
+		dev_err(tcphy->dev, "failed to deassert otg reset: %d\n", ret);
 
 unlock_ret:
 	mutex_unlock(&tcphy->lock);
@@ -1613,6 +1624,12 @@ static int tcphy_parse_dt(struct rockchip_typec_phy *tcphy,
 	if (ret)
 		memcpy(tcphy->config, tcphy_default_config,
 		       sizeof(tcphy->config));
+
+	tcphy->otg_rst = devm_reset_control_get(dev, "usb3-otg");
+	if (IS_ERR(tcphy->otg_rst)) {
+		dev_err(dev, "no otg_rst reset control found\n");
+		return PTR_ERR(tcphy->otg_rst);
+	}
 
 	return 0;
 }
