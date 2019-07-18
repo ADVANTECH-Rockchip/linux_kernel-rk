@@ -90,4 +90,9 @@ config ROCKCHIP_SUSPEND_MODE
 	help
 	  Say Y here if you want to set the suspend mode to the ATF.
 
+config ROCKCHIP_DMSSA53
+	bool "SGI Twin Star on Rockchip RK3399 SOCs"
+	help
+	  Support for Rockchip's Cortex-A9 Single-to-Quad-Core-SoCs
+
 endif
