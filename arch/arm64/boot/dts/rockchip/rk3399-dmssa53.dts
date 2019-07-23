@@ -360,6 +360,8 @@
 };
 
 &pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&msr_gpio>;
 	fusb30x {
 		fusb0_int: fusb0-int {
 			rockchip,pins =
@@ -381,6 +383,12 @@
 		uart0_gpios: uart0-gpios {
 			rockchip,pins =
 				<2 19 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+	msr-reader {
+		msr_gpio: msr-gpio {
+			rockchip,pins =
+				<3 1 RK_FUNC_GPIO &pcfg_output_high>; /* GPIO3_A1 - MSR_EN */
 		};
 	};
 };
