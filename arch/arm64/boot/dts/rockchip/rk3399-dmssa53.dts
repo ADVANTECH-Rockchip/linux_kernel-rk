@@ -369,6 +369,11 @@
 		fusb302,role = "ROLE_MODE_DRP";
 		status = "okay";
 	};
+	battery0: battery40Z50@0b {
+		compatible = "ti,bq40z50";
+		reg = <0x0b>;
+		status = "okay";
+	};
 };
 
 &i2c5 {

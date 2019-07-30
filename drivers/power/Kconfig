@@ -449,6 +449,13 @@ config CHARGER_BQ25890
 	help
 	  Say Y to enable support for the TI BQ25890 battery charger.
 
+config FUEL_GAUGE_BQ40Z50
+	tristate "TI BQ40z50 battery charger driver"
+	depends on I2C
+	select REGMAP_I2C
+	help
+	  Say Y to enable support for TI bq40z50 fuel gauge driver
+
 config CHARGER_SMB347
 	tristate "Summit Microelectronics SMB347 Battery Charger"
 	depends on I2C
