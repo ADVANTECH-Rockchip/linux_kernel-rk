@@ -240,6 +240,20 @@
 &tcphy0 {
 	extcon = <&fusb0>;
 	status = "okay";
+	resets = <&cru SRST_UPHY0>,
+			 <&cru SRST_UPHY0_PIPE_L00>,
+			 <&cru SRST_P_UPHY0_TCPHY>,
+			 <&cru SRST_A_USB3_OTG0>;
+	reset-names = "uphy", "uphy-pipe", "uphy-tcphy", "usb3-otg";
+};
+
+&tcphy1 {
+	status = "okay";
+	resets = <&cru SRST_UPHY1>,
+			 <&cru SRST_UPHY1_PIPE_L00>,
+			 <&cru SRST_P_UPHY1_TCPHY>,
+			 <&cru SRST_A_USB3_OTG1>;
+	reset-names = "uphy", "uphy-pipe", "uphy-tcphy", "usb3-otg";
 };
 
 &usbdrd3_1 {
