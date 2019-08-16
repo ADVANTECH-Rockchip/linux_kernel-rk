@@ -564,6 +564,17 @@ void analogix_dp_set_training_pattern(struct analogix_dp_device *dp,
 	}
 }
 
+int analogix_dp_get_lane0_pre_emphasis(struct analogix_dp_device *dp)
+{
+	u32 reg;
+
+	reg = readl(dp->reg_base + ANALOGIX_DP_LN0_LINK_TRAINING_CTL);
+	reg &= PRE_EMPHASIS_SET_MASK;
+	reg = reg >> PRE_EMPHASIS_SET_SHIFT;
+
+	return reg;
+}
+
 void analogix_dp_set_lane0_pre_emphasis(struct analogix_dp_device *dp,
 					u32 level)
 {
@@ -1075,4 +1086,36 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
 		msg->reply = DP_AUX_NATIVE_REPLY_ACK;
 
 	return num_transferred;
+}
+
+int analogix_dp_get_pattern(struct analogix_dp_device *dp)
+{
+	u8 reg;
+
+	reg = readl(dp->reg_base + ANALOGIX_DP_TRAINING_PTN_SET);
+	reg = (reg & LINK_QUAL_PATTERN_SET_MASK) >> LINK_QUAL_PATTERN_SET_SHIFT;
+
+	return reg;
+}
+
+void analogix_dp_set_lane0_drive_current(struct analogix_dp_device *dp,
+					 int level)
+{
+	u8 reg;
+
+	reg = readl(dp->reg_base + ANALOGIX_DP_LN0_LINK_TRAINING_CTL);
+	reg &=~DRIVE_CURRENT_SET_MASK;
+	reg |= level << DRIVE_CURRENT_SET_SHIFT;
+	writel(reg, dp->reg_base + ANALOGIX_DP_LN0_LINK_TRAINING_CTL);
+}
+
+int analogix_dp_get_lane0_drive_current(struct analogix_dp_device *dp)
+{
+	u8 reg;
+
+	reg = readl(dp->reg_base + ANALOGIX_DP_LN0_LINK_TRAINING_CTL);
+	reg &= DRIVE_CURRENT_SET_MASK;
+	reg = reg >> DRIVE_CURRENT_SET_SHIFT;
+
+	return reg;
 }

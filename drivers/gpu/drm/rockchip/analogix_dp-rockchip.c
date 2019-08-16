@@ -35,6 +35,7 @@
 
 #include "rockchip_drm_drv.h"
 #include "rockchip_drm_vop.h"
+#include "../bridge/analogix/analogix_dp_core.h"
 
 #define to_dp(nm)	container_of(nm, struct rockchip_dp_device, nm)
 
@@ -341,6 +342,156 @@ static int rockchip_dp_drm_create_encoder(struct rockchip_dp_device *dp)
 	return 0;
 }
 
+/*
+enum pattern_set {
+	PRBS7,
+	D10_2,
+	TRAINING_PTN1,
+	TRAINING_PTN2,
+	TRAINING_PTN3,
+	DP_NONE
+};
+*/
+static ssize_t
+edp_pattern_show(struct device *dev, struct device_attribute *attr, char *buf)
+
+{
+	int pattern;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+
+	pattern = analogix_dp_get_pattern(dp);
+
+	return sprintf(buf, "%d\n", pattern);
+}
+
+static ssize_t
+epd_pattern_store(struct device *dev, struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	unsigned long  pattern;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	if (kstrtoul(buf, 10, &pattern))
+		return -EINVAL;
+
+	analogix_dp_set_training_pattern(dp, pattern);
+	return count;
+}
+
+static ssize_t
+edp_ln0_drive_current_show(struct device *dev, struct device_attribute *attr,
+				char *buf)
+
+{
+	int drive_current;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	drive_current = analogix_dp_get_lane0_drive_current(dp);
+
+	return sprintf(buf, "%d\n", drive_current);
+}
+
+static ssize_t
+edp_ln0_drive_current_store(struct device *dev, struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	unsigned long  drive_current;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	if (kstrtoul(buf, 10, &drive_current))
+		return -EINVAL;
+
+	analogix_dp_set_lane0_drive_current(dp, drive_current);
+	return count;
+
+}
+
+static ssize_t
+edp_ln0_pre_emphasis_show(struct device *dev, struct device_attribute *attr,
+				char *buf)
+{
+	int pre_emphasis;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	pre_emphasis = analogix_dp_get_lane0_pre_emphasis(dp);
+
+	return sprintf(buf, "%d\n", pre_emphasis);
+}
+
+static ssize_t
+edp_ln0_pre_emphasis_store(struct device *dev, struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	unsigned long  pre_emphasis;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	if (kstrtoul(buf, 10, &pre_emphasis))
+		return -EINVAL;
+
+	analogix_dp_set_lane0_pre_emphasis(dp, pre_emphasis);
+	return count;
+
+}
+
+static ssize_t
+edp_bandwidth_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int bandwidth;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	analogix_dp_get_link_bandwidth(dp, &bandwidth);
+
+	return sprintf(buf, "%d\n", bandwidth);
+}
+
+static ssize_t
+edp_bandwidth_store(struct device *dev, struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	unsigned long  bandwidth;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	if (kstrtoul(buf, 10, &bandwidth))
+		return -EINVAL;
+
+	analogix_dp_set_link_bandwidth(dp, bandwidth);
+
+	return count;
+}
+
+static DEVICE_ATTR(edp_pattern, 0644, edp_pattern_show, epd_pattern_store);
+static DEVICE_ATTR(edp_ln0_drive_current, 0644, edp_ln0_drive_current_show,
+		   edp_ln0_drive_current_store);
+static DEVICE_ATTR(edp_ln0_pre_emphasis, 0644, edp_ln0_pre_emphasis_show,
+				 edp_ln0_pre_emphasis_store);
+static DEVICE_ATTR(edp_bandwidth, 0644, edp_bandwidth_show,
+				 edp_bandwidth_store);
+
+static struct attribute *edp_attributes[] = {
+	&dev_attr_edp_pattern.attr,
+	&dev_attr_edp_ln0_drive_current.attr,
+	&dev_attr_edp_ln0_pre_emphasis.attr,
+	&dev_attr_edp_bandwidth.attr,
+	NULL,
+};
+
+static const struct attribute_group edp_attr_group = {
+	.attrs = edp_attributes,
+};
+
+
+
+
+
 static int rockchip_dp_bind(struct device *dev, struct device *master,
 			    void *data)
 {
@@ -427,6 +578,7 @@ static int rockchip_dp_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct rockchip_dp_device *dp;
+	int ret;
 
 	dp = devm_kzalloc(dev, sizeof(*dp), GFP_KERNEL);
 	if (!dp)
@@ -436,6 +588,11 @@ static int rockchip_dp_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, dp);
 
+	ret = sysfs_create_group(&dev->kobj, &edp_attr_group);
+	if (ret) {
+		dev_err(dev, "failed to register sysfs. err: %d\n", ret);
+		return ret;
+	}
 	return component_add(dev, &rockchip_dp_component_ops);
 }
 
