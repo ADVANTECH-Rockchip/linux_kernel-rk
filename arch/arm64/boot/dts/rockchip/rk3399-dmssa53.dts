@@ -471,7 +471,7 @@
 		/* codec-avdd-delay = <100>; */
 		/* codec-micvdd-gpio = <&gpio3 11 GPIO_ACTIVE_HIGH>; */
 		/* codec-spkvdd-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>; */
-		amp-shutdown-gpio = <&gpio3 6 GPIO_ACTIVE_HIGH>; /* GPIO3_A6 - AMP_SHUTDN */
+		/* amp-shutdown-gpio = <&gpio3 6 GPIO_ACTIVE_HIGH>; /* GPIO3_A6 - AMP_SHUTDN */
 		/* amp-mute-gpio = <&gpio6 5 GPIO_ACTIVE_HIGH>; */
 
 		clocks = <&cru SCLK_I2S_8CH_OUT>;
