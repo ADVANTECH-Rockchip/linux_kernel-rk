@@ -7573,6 +7573,11 @@ dhd_bus_console_in(dhd_pub_t *dhdp, uchar *msg, uint msglen)
 		goto done;
 	}
 
+	if (!DATAOK(bus)) {
+		rv = BCME_NOTREADY;
+		goto done;
+	}
+
 	/* Bump dongle by sending an empty packet on the event channel.
 	 * sdpcm_sendup (RX) checks for virtual console input.
 	 */
