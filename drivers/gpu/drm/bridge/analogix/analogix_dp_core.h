@@ -251,6 +251,11 @@ void analogix_dp_set_video_format(struct analogix_dp_device *dp);
 void analogix_dp_video_bist_enable(struct analogix_dp_device *dp);
 ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
 			     struct drm_dp_aux_msg *msg);
+int analogix_dp_get_pattern(struct analogix_dp_device *dp);
+int analogix_dp_get_lane0_pre_emphasis(struct analogix_dp_device *dp);
+void analogix_dp_set_lane0_drive_current(struct analogix_dp_device *dp,
+					 int level);
+int analogix_dp_get_lane0_drive_current(struct analogix_dp_device *dp);
 void analogix_dp_ssc_enable(struct analogix_dp_device *dp);
 void analogix_dp_ssc_disable(struct analogix_dp_device *dp);
 #endif /* _ANALOGIX_DP_CORE_H */
