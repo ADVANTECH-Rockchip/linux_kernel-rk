@@ -200,11 +200,31 @@
 		regulator-name = "vdd_lvds";
 	};
 
+#if 0
 	rockchip-rt5660 {
 		compatible = "rockchip,rockchip-audio-rt5660";
 		rockchip,model = "rockchip_rt5660";
         rockchip,i2s-controller = <&i2s>;
         rockchip,audio-codec = <&rt5660>;
+	};
+#endif
+
+	hdmi_analog_sound: hdmi-analog-sound {
+		status = "okay";
+		compatible = "rockchip,rk3288-hdmi-analog",
+				"rockchip,rk3368-hdmi-analog";
+		rockchip,model = "rockchip,rt5660-codec";
+		rockchip,cpu = <&i2s>;
+		rockchip,codec = <&rt5660>, <&hdmi>;
+		rockchip,widgets =
+			"Microphone", "Microphone Jack",
+			"Headphone", "Headphone Jack";
+		rockchip,routing =
+			"MIC1", "Microphone Jack",
+			"MIC2", "Microphone Jack",
+			"Microphone Jack", "micbias1",
+			"Headphone Jack", "HPOL",
+			"Headphone Jack", "HPOR";
 	};
 
 	dwc_control_usb: dwc-control-usb@ff770284 {
