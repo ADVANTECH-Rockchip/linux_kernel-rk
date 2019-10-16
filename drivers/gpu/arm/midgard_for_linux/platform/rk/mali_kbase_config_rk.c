@@ -25,7 +25,7 @@
 #include <linux/soc/rockchip/pvtm.h>
 #include <linux/thermal.h>
 #include <soc/rockchip/rockchip_opp_select.h>
-
+#include <linux/gpio.h>
 #include "mali_kbase_rk.h"
 
 /**
@@ -267,12 +267,28 @@ int kbase_platform_early_init(void)
 	return 0;
 }
 
+void set_v12_disable(void)
+{
+	int gpio = 99; //GPIO3_A3 (V12_EN)
+	int rett = gpio_request(gpio, "V12_EN");
+	if (rett<0) {
+		printk("%s: gpio_request failed for gpio %d\n",
+			 __func__, gpio);
+		return;
+	} else {
+		gpio_direction_output(gpio, 0);
+		gpio_set_value(gpio,0);
+	}
+	gpio_free(gpio);
+}
+
 /*---------------------------------------------------------------------------*/
 
 void kbase_platform_rk_shutdown(struct kbase_device *kbdev)
 {
 	I("to make vdd_gpu enabled for turning off pd_gpu in pm_framework.");
 	rk_pm_enable_regulator(kbdev);
+	set_v12_disable();
 }
 
 /*---------------------------------------------------------------------------*/
