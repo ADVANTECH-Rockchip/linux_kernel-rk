@@ -26,7 +26,7 @@
 #include <linux/uaccess.h>
 #include <linux/interrupt.h>
 #include <linux/gpio/consumer.h>
-
+#include <linux/gpio.h>
 #define bq_info	pr_info
 #define bq_dbg	pr_debug
 #define bq_err	pr_err
@@ -726,7 +726,7 @@ static int fg_get_property(struct power_supply *psy, enum power_supply_property 
 	}
 	return 0;
 }
-static void fg_dump_registers(struct bq_fg_chip *bq);
+//static void fg_dump_registers(struct bq_fg_chip *bq);
 
 static int fg_set_property(struct power_supply *psy,
 			       enum power_supply_property prop,
@@ -880,7 +880,7 @@ static const struct attribute_group fg_attr_group = {
 	.attrs = fg_attributes,
 };
 
-
+#if 0
 static void fg_dump_registers(struct bq_fg_chip *bq)
 {
 	int i;
@@ -894,7 +894,7 @@ static void fg_dump_registers(struct bq_fg_chip *bq)
 			bq_log("Reg[%02X] = 0x%04X\n", fg_dump_regs[i], val);
 	}
 }
-
+#endif
 static irqreturn_t fg_btp_irq_thread(int irq, void *dev_id)
 {
 	/*struct bq_fg_chip *bq = dev_id;*/
@@ -903,6 +903,23 @@ static irqreturn_t fg_btp_irq_thread(int irq, void *dev_id)
 
 
 	return IRQ_HANDLED;
+}
+
+static void fq_update_cradle_status(int battery_status){
+	int gpio_cradle_led = 40;//UART4_TXD - GPIO1_B0
+	int gpio_cradle_led_value = (battery_status == POWER_SUPPLY_STATUS_FULL);
+	int rett = gpio_request(gpio_cradle_led, "gpio_cradle_led");
+	if (rett<0) {
+		printk("%s: gpio_request failed for gpio %d\n",
+			 __func__, gpio_cradle_led);
+		return;
+	} else {
+		//printk("battery_status:%d\n", battery_status);
+		//printk("gpio_cradle_led_value:%d\n", gpio_cradle_led_value);
+		gpio_direction_output(gpio_cradle_led, gpio_cradle_led_value);
+		gpio_set_value(gpio_cradle_led,gpio_cradle_led_value);
+	}
+	gpio_free(gpio_cradle_led);
 }
 
 static void fg_update_status(struct bq_fg_chip *bq)
@@ -919,6 +936,15 @@ static void fg_update_status(struct bq_fg_chip *bq)
 	mutex_unlock(&bq->data_lock);
 	bq_log("RSOC:%d, Volt:%d, Current:%d, Temperature:%d\n",
 		bq->batt_soc, bq->batt_volt, bq->batt_curr, bq->batt_temp);
+
+	fq_update_cradle_status(fg_get_batt_status(bq));
+}
+
+static irqreturn_t fg_charging_irq_thread(int irq, void *dev_id)
+{
+	struct bq_fg_chip *bq = dev_id;
+	fg_update_status(bq);
+	return IRQ_HANDLED;
 }
 
 static void fg_monitor_workfunc(struct work_struct *work)
@@ -927,9 +953,9 @@ static void fg_monitor_workfunc(struct work_struct *work)
 
 	fg_update_status(bq);
 
-	fg_dump_registers(bq);
+	//fg_dump_registers(bq);
 
-	schedule_delayed_work(&bq->monitor_work, 5 * HZ);
+	schedule_delayed_work(&bq->monitor_work, 15 * HZ);
 }
 
 
@@ -944,7 +970,7 @@ static int bq_fg_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
 {
 
-	int ret;
+	int ret, irq_num, gpio_curreent;
 	struct bq_fg_chip *bq;
 	u8 *regs;
 
@@ -1016,6 +1042,18 @@ static int bq_fg_probe(struct i2c_client *client,
 	bq_log("bq fuel gauge probe successfully, %s\n",
 			device2str[bq->chip]);
 
+	gpio_curreent = 104; //2A_CURRENT - GPIO3_B0
+	irq_num = gpio_to_irq(gpio_curreent);
+	gpio_direction_input(gpio_curreent);
+
+	ret = devm_request_threaded_irq(&client->dev, irq_num, NULL,
+			fg_charging_irq_thread,
+			IRQF_TRIGGER_RISING |IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+			"bq fuel gauge charging irq", bq);
+	if (ret < 0) {
+		bq_err("request irq for charging irq=%d failed, ret = %d\n", irq_num, ret);
+	}
+	schedule_delayed_work(&bq->monitor_work, 30 * HZ);
 	return 0;
 
 err_1:
