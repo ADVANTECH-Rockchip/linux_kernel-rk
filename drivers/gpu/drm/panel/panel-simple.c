@@ -550,7 +550,8 @@ static int panel_simple_loader_protect(struct drm_panel *panel, bool on)
 	struct panel_simple *p = to_panel_simple(panel);
 	int err;
 
-	if (on) {
+//	/* Ted, 20191005, to avoid panel not powered because dsi initial first */
+	if (on && p->prepared && p->enabled) { 
 		err = panel_simple_regulator_enable(panel);
 		if (err < 0) {
 			dev_err(panel->dev, "failed to enable supply: %d\n",
@@ -2081,7 +2082,7 @@ static const struct panel_desc pvo_p133npf1p = {
 
 static const struct of_device_id platform_of_match[] = {
 	{
-		.compatible = "simple-panel",
+		.compatible = "simple-panel-dsi",
 		.data = NULL,
 	}, {
 		.compatible = "ampire,am800480r3tmqwa1h",
