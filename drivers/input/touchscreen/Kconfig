@@ -1175,4 +1175,16 @@ config TOUCHSCREEN_VTL_CT36X
 config TOUCHSCREEN_GT1X
 	tristate "GT1X touchscreens support"
 
+config TOUCHSCREEN_HY46XX_I2C
+        tristate "Hycon 46XX i2c touchscreen"
+        depends on I2C && OF
+        help
+          Say Y here if you have the Hycon 46XX touchscreen controller
+          chip in your system.
+
+          If unsure, say N.
+
+          To compile this driver as a module, choose M here: the
+          module will be called hycon_i2c.
+
 endif
