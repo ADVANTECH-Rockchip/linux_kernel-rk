@@ -77,6 +77,7 @@ static const struct pci_device_id igb_pci_tbl[] = {
 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I354_SGMII) },
 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I354_BACKPLANE_2_5GBPS) },
 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I211_COPPER), board_82575 },
+	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I211_COPPER_BLANK), board_82575 },
 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I210_COPPER), board_82575 },
 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I210_FIBER), board_82575 },
 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_I210_SERDES), board_82575 },
@@ -2421,12 +2422,23 @@ static int igb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (hw->mac.ops.read_mac_addr(hw))
 		dev_err(&pdev->dev, "NVM Read Error\n");
 
+//ted
+#if 1
+	if (!is_valid_ether_addr(hw->mac.addr)){
+		const uint8_t mac[]={0x00,0xA0,0xC9,0x00,0x95,0x28};
+		memcpy(hw->mac.addr, mac, ETH_ALEN);
+	}
+	
+		//igb_read_mac_addr_dts(hw);
+#endif
+
 	memcpy(netdev->dev_addr, hw->mac.addr, netdev->addr_len);
 
 	if (!is_valid_ether_addr(netdev->dev_addr)) {
 		dev_err(&pdev->dev, "Invalid MAC Address\n");
-		err = -EIO;
-		goto err_eeprom;
+		//err = -EIO;
+		//goto err_eeprom;
+		eth_hw_addr_random(netdev);
 	}
 
 	/* get firmware version for ethtool -i */

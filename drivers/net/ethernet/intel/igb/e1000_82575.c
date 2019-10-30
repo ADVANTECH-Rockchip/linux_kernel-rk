@@ -585,6 +585,7 @@ static s32 igb_get_invariants_82575(struct e1000_hw *hw)
 		mac->type = e1000_i210;
 		break;
 	case E1000_DEV_ID_I211_COPPER:
+	case E1000_DEV_ID_I211_COPPER_BLANK:
 		mac->type = e1000_i211;
 		break;
 	case E1000_DEV_ID_I354_BACKPLANE_1GBPS:
