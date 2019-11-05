@@ -58,6 +58,16 @@
 		interrupts = <GIC_SPI 150 IRQ_TYPE_LEVEL_HIGH 0>;
 	};
 
+	vcc5v0_otg: vcc5v0-otg-regulator {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&host_vbus_drv>;
+		regulator-name = "vcc5v0_otg";
+		//regulator-always-on;
+	};
+
 	buzzer: buzzer {
 		status = "okay";
 		compatible = "pwm-beeper";
@@ -105,21 +115,6 @@
 			248 249 250 251 252 253 254 255>;
 		default-brightness-level = <200>;
 	};
-/*
-	vcc_lcd: vcc-lcd-regulator {
-		status = "disabled";
-		compatible = "regulator-fixed";
-		enable-active-high;
-		regulator-name = "vcc_lcd";
-		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&lcd_en>;
-		regulator-always-on;
-		regulator-boot-on;
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-	};
-*/
 
 	vcc3v3_pcie: vcc3v3-pcie-regulator {
 		compatible = "regulator-fixed";
@@ -143,7 +138,7 @@
 			logo,kernel = "logo_kernel.bmp";
 			logo,mode = "center";
 			charge_logo,mode = "center";
-			connect = <&vopl_out_dsi>;
+			connect = <&vopb_out_dsi>;
 		};
 	};
 };
@@ -475,6 +470,14 @@
 	};
 };
 
+&vopb {
+	status = "okay";
+};
+
+&vopb_mmu {
+	status = "okay";
+};
+
 &vopl {
 	status = "okay";
 };
@@ -493,14 +496,23 @@
 
 &u2phy0 {
  	status = "okay";
-	extcon = <&fusb0>;
+	
  	u2phy0_otg: otg-port {
+ 		vbus-supply = <&vcc5v0_otg>;
  		status = "okay";
  	};
- };
- 
+	u2phy0_host: host-port {
+		phy-supply = <&vcc5v0_host>;
+		status = "disabled";
+	}; 	
+};
+
+&u2phy1 {
+	status = "disabled";
+};
+	 
 &usbdrd3_0 {
-	extcon = <&fusb0>;
+	extcon = <&u2phy0>;
 	status = "okay";
 };
 
@@ -526,6 +538,14 @@
 &usbdrd3_0 {
 	status = "okay";
 	extcon = <&u2phy0>;
+};
+
+&usbdrd_dwc3_0 {
+	dr_mode = "otg";
+	maximum-speed = "high-speed";
+	phys = <&u2phy0_otg>;
+	phy-names = "usb2-phy";
+	status = "okay";
 };
 
 &usbdrd3_1 {
@@ -584,7 +604,7 @@
 };
 
 &i2c0 {
-
+	status = "okay";
 	rk808: pmic@1b {
 		regulators {
 			vcca3v0_codec: LDO_REG2 {
@@ -642,6 +662,7 @@
 	ltr308@53 {
 		compatible = "lite_on,ltr308";
 		reg = <0x53>;
+		status = "okay";
 	};
 };
 
@@ -656,7 +677,7 @@
 		vbus-5v-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
 		int-n-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
 		fusb302,role = "ROLE_MODE_DRP";
-		status = "okay";
+		status = "disabled";
 	};
 };
 
@@ -666,11 +687,14 @@
 	hy46xx_i2c@38 {
 		compatible = "hycon,hy46xx_ts";
 		reg = <0x38>;
-		interrupt-parent = <&gpio3>;
+		//interrupt-parent = <&gpio3>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ctp_gpio>;
 		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
 		int-gpios = <&gpio3 14 GPIO_ACTIVE_LOW>;
 		reset-gpios = <&gpio3 13 GPIO_ACTIVE_LOW>;
 		pwen-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
+		status = "okay";
 	};
 };
 
@@ -692,6 +716,17 @@
 
 };
 
+&vcc5v0_host {
+	status = "disabled";
+};
+
+&gmac {
+	status = "disabled";
+};
+
+&spdif {
+	status = "disabled";
+};
 
 &pinctrl {
 	pinctrl-names = "default";
@@ -703,10 +738,19 @@
 		};
 	};
 
-	hy46xx_i2c {
-		ctp_int: ctp-int {
+	u2phy0 {
+		otg_vbus: otg-vbus {
 			rockchip,pins =
-				<3 14 RK_FUNC_GPIO &pcfg_pull_up>; //GPIO3_B6
+				<0 6 RK_FUNC_GPIO &pcfg_pull_none>; //GPIO0_A6
+		};
+	};
+
+	hy46xx_i2c {
+		ctp_gpio: ctp-gpio {
+			rockchip,pins =
+				<3 13  RK_FUNC_GPIO &pcfg_pull_none>, // GPIO3_B5
+				<3 14  RK_FUNC_GPIO &pcfg_pull_none>, //GPIO3_B6
+				<3 16  RK_FUNC_GPIO &pcfg_pull_none>; //GPIO3_B0
 		};
 	};
 
@@ -714,7 +758,7 @@
 		dsi_gpio:dsi-gpio{
 			rockchip,pins=
                     <3 12  RK_FUNC_GPIO &pcfg_pull_none>, // GPIO3_B4
-                    <3 15  RK_FUNC_GPIO &pcfg_pull_none>; // GPIO3_B7
+                    <3 15  RK_FUNC_GPIO &pcfg_pull_up>; // GPIO3_B7
 			
 		};
 	};
