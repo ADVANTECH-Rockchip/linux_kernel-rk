@@ -442,6 +442,65 @@ edp_ln0_pre_emphasis_store(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t
+edp_ln1_drive_current_show(struct device *dev, struct device_attribute *attr,
+				char *buf)
+
+{
+	int drive_current;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	drive_current = analogix_dp_get_lane1_drive_current(dp);
+
+	return sprintf(buf, "%d\n", drive_current);
+}
+
+static ssize_t
+edp_ln1_drive_current_store(struct device *dev, struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	unsigned long  drive_current;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	if (kstrtoul(buf, 10, &drive_current))
+		return -EINVAL;
+
+	analogix_dp_set_lane1_drive_current(dp, drive_current);
+	return count;
+
+}
+
+static ssize_t
+edp_ln1_pre_emphasis_show(struct device *dev, struct device_attribute *attr,
+				char *buf)
+{
+	int pre_emphasis;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	pre_emphasis = analogix_dp_get_lane1_pre_emphasis(dp);
+
+	return sprintf(buf, "%d\n", pre_emphasis);
+}
+
+static ssize_t
+edp_ln1_pre_emphasis_store(struct device *dev, struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	unsigned long  pre_emphasis;
+	struct rockchip_dp_device *rk_dp = dev_get_drvdata(dev);
+	struct analogix_dp_device *dp = rk_dp->adp;
+
+	if (kstrtoul(buf, 10, &pre_emphasis))
+		return -EINVAL;
+
+	analogix_dp_set_lane1_pre_emphasis(dp, pre_emphasis);
+	return count;
+
+}
+
+static ssize_t
 edp_bandwidth_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	int bandwidth;
@@ -474,6 +533,10 @@ static DEVICE_ATTR(edp_ln0_drive_current, 0644, edp_ln0_drive_current_show,
 		   edp_ln0_drive_current_store);
 static DEVICE_ATTR(edp_ln0_pre_emphasis, 0644, edp_ln0_pre_emphasis_show,
 				 edp_ln0_pre_emphasis_store);
+static DEVICE_ATTR(edp_ln1_drive_current, 0644, edp_ln1_drive_current_show,
+		   edp_ln1_drive_current_store);
+static DEVICE_ATTR(edp_ln1_pre_emphasis, 0644, edp_ln1_pre_emphasis_show,
+				 edp_ln1_pre_emphasis_store);
 static DEVICE_ATTR(edp_bandwidth, 0644, edp_bandwidth_show,
 				 edp_bandwidth_store);
 
@@ -481,6 +544,8 @@ static struct attribute *edp_attributes[] = {
 	&dev_attr_edp_pattern.attr,
 	&dev_attr_edp_ln0_drive_current.attr,
 	&dev_attr_edp_ln0_pre_emphasis.attr,
+	&dev_attr_edp_ln1_drive_current.attr,
+	&dev_attr_edp_ln1_pre_emphasis.attr,
 	&dev_attr_edp_bandwidth.attr,
 	NULL,
 };

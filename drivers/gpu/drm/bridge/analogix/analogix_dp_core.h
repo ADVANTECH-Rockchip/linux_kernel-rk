@@ -256,6 +256,10 @@ int analogix_dp_get_lane0_pre_emphasis(struct analogix_dp_device *dp);
 void analogix_dp_set_lane0_drive_current(struct analogix_dp_device *dp,
 					 int level);
 int analogix_dp_get_lane0_drive_current(struct analogix_dp_device *dp);
+int analogix_dp_get_lane1_pre_emphasis(struct analogix_dp_device *dp);
+void analogix_dp_set_lane1_drive_current(struct analogix_dp_device *dp,
+					 int level);
+int analogix_dp_get_lane1_drive_current(struct analogix_dp_device *dp);
 void analogix_dp_ssc_enable(struct analogix_dp_device *dp);
 void analogix_dp_ssc_disable(struct analogix_dp_device *dp);
 #endif /* _ANALOGIX_DP_CORE_H */
