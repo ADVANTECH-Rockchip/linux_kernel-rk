@@ -8,7 +8,7 @@
 //#define HY46XX_FW_UPDATE_ENABLE
 //#define HYS_APK_DEBUG			//must define HY46XX_FW_UPDATE_ENABLE at the same time
 
-//#define LINUX_OS
+#define LINUX_OS
 
 /************************************************************/
 #define HY46XX_NAME	"hy46xx_ts"

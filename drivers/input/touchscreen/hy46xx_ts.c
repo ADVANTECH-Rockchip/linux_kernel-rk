@@ -1177,8 +1177,8 @@ static int hy46xx_read_Touchdata(struct hy46xx_ts_data *data)
         else
         {
             event->touch_point++;
-            event->au16_x[i] =(unsigned short) (buf[HY_TOUCH_X_H_POS + HY_TOUCH_STEP * i] & 0x0F) << 8 | (s16) buf[HY_TOUCH_X_L_POS + HY_TOUCH_STEP * i];
-            event->au16_y[i] =(unsigned short) (buf[HY_TOUCH_Y_H_POS + HY_TOUCH_STEP * i] & 0x0F) <<8 | (s16) buf[HY_TOUCH_Y_L_POS + HY_TOUCH_STEP * i];
+            event->au16_y[i] =(unsigned short) (buf[HY_TOUCH_X_H_POS + HY_TOUCH_STEP * i] & 0x0F) << 8 | (s16) buf[HY_TOUCH_X_L_POS + HY_TOUCH_STEP * i];
+            event->au16_x[i] =(unsigned short) (buf[HY_TOUCH_Y_H_POS + HY_TOUCH_STEP * i] & 0x0F) <<8 | (s16) buf[HY_TOUCH_Y_L_POS + HY_TOUCH_STEP * i];
             event->au8_touch_event[i] =buf[HY_TOUCH_EVENT_POS + HY_TOUCH_STEP * i] >> 6;
             event->au8_finger_id[i] =(buf[HY_TOUCH_ID_POS + HY_TOUCH_STEP * i]) >> 4;
         }
@@ -1197,8 +1197,13 @@ static void hy46xx_report_value(struct hy46xx_ts_data *data)
     struct ts_event *event = &data->event;
     int i;
     int uppoint = 0;
+    int tmp;
     for (i = 0; i < event->touch_point; i++)
     {
+    tmp = -(event->au16_x[i]) + RESOLUTION_X;
+    tmp = tmp < 0? 0:tmp;
+    tmp = tmp > RESOLUTION_X ? RESOLUTION_X:tmp;
+    event->au16_x[i] = tmp;
         if((event->au16_x[i] < RESOLUTION_X) && (event->au16_y[i] < RESOLUTION_Y))
         {
             input_mt_slot(data->input_dev, event->au8_finger_id[i]);
