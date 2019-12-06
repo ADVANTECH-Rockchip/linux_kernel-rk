@@ -13,7 +13,7 @@
 /************************************************************/
 #define HY46XX_NAME	"hy46xx_ts"
 #define CFG_MAX_TOUCH_POINTS	5
-#define RESOLUTION_X			800
+#define RESOLUTION_X			720
 #define RESOLUTION_Y			1280
 
 #define HY_PRESS				0x08

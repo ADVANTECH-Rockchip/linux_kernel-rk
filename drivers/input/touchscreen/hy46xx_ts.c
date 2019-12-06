@@ -46,21 +46,10 @@
 #include <linux/uaccess.h>
 #include <asm/uaccess.h>
 #include <asm/unistd.h>
-
 #include <linux/irq.h>
 #include <linux/gpio.h>
-
 #include <linux/of_gpio.h>
-
-
-//#include <mach/map.h>
-//#include <mach/regs-clock.h>
-//#include <mach/regs-gpio.h>
-//#include <plat/gpio-cfg.h>
-
 #include "hy46xx_ts.h"
-
-#define WTF 0
 
 #define hy46xx_ts_suspend	NULL
 #define hy46xx_ts_resume	NULL
@@ -92,6 +81,44 @@ static int i2c_interface_send(struct i2c_client* client, unsigned char* pbt_buf,
     return ret;
 }
 #endif
+
+static uint32_t orient = 0; // 0 for portrait, 1 for landscape
+
+#if 0
+static ssize_t orientation_set(struct device *dev,
+                                          struct device_attribute *attr,
+                                          const char *buf, 
+                                          size_t size);
+
+static ssize_t orientation_show(struct device *dev,
+                                      struct device_attribute *attr,
+                                      char *buf);
+#endif
+static ssize_t orientation_set(struct device *dev,
+                                          struct device_attribute *attr,
+                                          const char *buf, 
+                                          size_t size)
+{
+	orient = simple_strtoul(buf, NULL, 10);
+	return size;
+}
+	                                     
+static ssize_t orientation_show(struct device *dev,
+                               struct device_attribute *attr, char *buf)
+{
+
+  *buf = 0;
+  sprintf(buf, "%d\n", orient);
+  return strlen(buf);
+  
+
+}
+
+
+static DEVICE_ATTR(orient, S_IWUSR | S_IRUGO , orientation_show, orientation_set);
+
+
+
 /**************************************************************/
 int hy46xx_i2c_Read(struct i2c_client *client, char *writebuf, int writelen, char *readbuf, int readlen)
 {
@@ -1177,8 +1204,8 @@ static int hy46xx_read_Touchdata(struct hy46xx_ts_data *data)
         else
         {
             event->touch_point++;
-            event->au16_y[i] =(unsigned short) (buf[HY_TOUCH_X_H_POS + HY_TOUCH_STEP * i] & 0x0F) << 8 | (s16) buf[HY_TOUCH_X_L_POS + HY_TOUCH_STEP * i];
-            event->au16_x[i] =(unsigned short) (buf[HY_TOUCH_Y_H_POS + HY_TOUCH_STEP * i] & 0x0F) <<8 | (s16) buf[HY_TOUCH_Y_L_POS + HY_TOUCH_STEP * i];
+            event->au16_x[i] =(unsigned short) (buf[HY_TOUCH_X_H_POS + HY_TOUCH_STEP * i] & 0x0F) << 8 | (s16) buf[HY_TOUCH_X_L_POS + HY_TOUCH_STEP * i];
+            event->au16_y[i] =(unsigned short) (buf[HY_TOUCH_Y_H_POS + HY_TOUCH_STEP * i] & 0x0F) <<8 | (s16) buf[HY_TOUCH_Y_L_POS + HY_TOUCH_STEP * i];
             event->au8_touch_event[i] =buf[HY_TOUCH_EVENT_POS + HY_TOUCH_STEP * i] >> 6;
             event->au8_finger_id[i] =(buf[HY_TOUCH_ID_POS + HY_TOUCH_STEP * i]) >> 4;
         }
@@ -1197,13 +1224,16 @@ static void hy46xx_report_value(struct hy46xx_ts_data *data)
     struct ts_event *event = &data->event;
     int i;
     int uppoint = 0;
-    int tmp;
+//    int tmp;
     for (i = 0; i < event->touch_point; i++)
     {
+#if 0		
     tmp = -(event->au16_x[i]) + RESOLUTION_X;
     tmp = tmp < 0? 0:tmp;
     tmp = tmp > RESOLUTION_X ? RESOLUTION_X:tmp;
     event->au16_x[i] = tmp;
+#endif
+    
         if((event->au16_x[i] < RESOLUTION_X) && (event->au16_y[i] < RESOLUTION_Y))
         {
             input_mt_slot(data->input_dev, event->au8_finger_id[i]);
@@ -1319,15 +1349,6 @@ static int hy46xx_ts_probe(struct i2c_client *client,const struct i2c_device_id 
     //client->irq = hy46xx_ts->gpio_int_irq;
     pr_info("irq = %d\n", client->irq);
 
-#if WTF
-    err = request_threaded_irq(client->irq, NULL, hy46xx_ts_interrupt,IRQF_TRIGGER_FALLING, client->dev.driver->name,hy46xx_ts);
-    if (err < 0)
-    {
-        dev_err(&client->dev, "hy46xx_probe: request irq failed\n");
-        goto exit_irq_request_failed;
-    }
-    disable_irq(client->irq);
-#else
     /*
      * Systems using device tree should set up interrupt via DTS,
      * the rest will use the default falling edge interrupts.
@@ -1345,7 +1366,7 @@ static int hy46xx_ts_probe(struct i2c_client *client,const struct i2c_device_id 
         goto exit_irq_request_failed;
     }
     disable_irq(client->irq);
-#endif
+
     input_dev = input_allocate_device();
     if (!input_dev)
     {
@@ -1393,6 +1414,8 @@ static int hy46xx_ts_probe(struct i2c_client *client,const struct i2c_device_id 
 #endif
 
     enable_irq(client->irq);
+    err = device_create_file(&(client->dev), &dev_attr_orient);
+
     return 0;
 
 exit_input_register_device_failed:
