@@ -683,7 +683,7 @@
 
 &i2c5 {
 	status = "okay";
-	clock-frequency = <400000>;
+	clock-frequency = <200000>;
 	hy46xx_i2c@38 {
 		compatible = "hycon,hy46xx_ts";
 		reg = <0x38>;
