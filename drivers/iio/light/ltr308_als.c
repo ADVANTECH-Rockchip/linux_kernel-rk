@@ -35,36 +35,38 @@ static int ltr308_i2c_write_reg(struct i2c_client *client, u8 reg, u8 value)
     struct LTR308_data *data = iio_priv(indio_dev);
     ret = i2c_smbus_write_byte_data(data->client, reg, value);
 
-    if (ret < 0){
-		printk("i2c write error, ret: %d\n",ret);
+    if (ret < 0)
+    {
+        printk("i2c write error, ret: %d\n",ret);
         return ret;
-	}
+    }
     else
         return 0;
 }
 
 
-static void ltr308_dump_regs(struct i2c_client *client){
-	
-	LTR308_DEBUG("LTR308_MAIN_CTRL[0x%02X]         = [%02X]\n", LTR308_MAIN_CTRL,ltr308_i2c_read_reg(client, LTR308_MAIN_CTRL));
-	LTR308_DEBUG("LTR308_ALS_MEAS_RATE[0x%02X]     = [%02X]\n", LTR308_ALS_MEAS_RATE,ltr308_i2c_read_reg(client, LTR308_ALS_MEAS_RATE));
-	LTR308_DEBUG("LTR308_ALS_GAIN[0x%02X]          = [%02X]\n", LTR308_ALS_GAIN,ltr308_i2c_read_reg(client, LTR308_ALS_GAIN));
-	LTR308_DEBUG("LTR308_PART_ID[0x%02X]           = [%02X]\n", LTR308_PART_ID,ltr308_i2c_read_reg(client, LTR308_PART_ID));
-	LTR308_DEBUG("LTR308_MAIN_STATUS[0x%02X]       = [%02X]\n", LTR308_MAIN_STATUS,ltr308_i2c_read_reg(client, LTR308_MAIN_STATUS));
-	LTR308_DEBUG("LTR308_ALS_DATA_0[0x%02X]        = [%02X]\n", LTR308_ALS_DATA_0,ltr308_i2c_read_reg(client, LTR308_ALS_DATA_0));
-	LTR308_DEBUG("LTR308_ALS_DATA_1[0x%02X]        = [%02X]\n", LTR308_ALS_DATA_1,ltr308_i2c_read_reg(client, LTR308_ALS_DATA_1));
-	LTR308_DEBUG("LTR308_ALS_DATA_2[0x%02X]        = [%02X]\n", LTR308_ALS_DATA_2,ltr308_i2c_read_reg(client, LTR308_ALS_DATA_2));
-	LTR308_DEBUG("LTR308_INT_CFG[0x%02X]           = [%02X]\n", LTR308_INT_CFG,ltr308_i2c_read_reg(client, LTR308_INT_CFG));
-	LTR308_DEBUG("LTR308_INT_PST[0x%02X]           = [%02X]\n", LTR308_INT_PST,ltr308_i2c_read_reg(client, LTR308_INT_PST));
-	LTR308_DEBUG("LTR308_ALS_THRES_UP_0[0x%02X]    = [%02X]\n", LTR308_ALS_THRES_UP_0,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_UP_0));
-	LTR308_DEBUG("LTR308_ALS_THRES_UP_1[0x%02X]    = [%02X]\n", LTR308_ALS_THRES_UP_1,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_UP_1));
-	LTR308_DEBUG("LTR308_ALS_THRES_UP_2[0x%02X]    = [%02X]\n", LTR308_ALS_THRES_UP_2,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_UP_2));
-	LTR308_DEBUG("LTR308_ALS_THRES_LOW_0[0x%02X]   = [%02X]\n", LTR308_ALS_THRES_LOW_0,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_LOW_0));
-	LTR308_DEBUG("LTR308_ALS_THRES_LOW_1[0x%02X]   = [%02X]\n", LTR308_ALS_THRES_LOW_1,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_LOW_1));
-	LTR308_DEBUG("LTR308_ALS_THRES_LOW_2[0x%02X]   = [%02X]\n", LTR308_ALS_THRES_LOW_2,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_LOW_2));
+static void ltr308_dump_regs(struct i2c_client *client)
+{
 
-	
-	
+    LTR308_DEBUG("LTR308_MAIN_CTRL[0x%02X]         = [%02X]\n", LTR308_MAIN_CTRL,ltr308_i2c_read_reg(client, LTR308_MAIN_CTRL));
+    LTR308_DEBUG("LTR308_ALS_MEAS_RATE[0x%02X]     = [%02X]\n", LTR308_ALS_MEAS_RATE,ltr308_i2c_read_reg(client, LTR308_ALS_MEAS_RATE));
+    LTR308_DEBUG("LTR308_ALS_GAIN[0x%02X]          = [%02X]\n", LTR308_ALS_GAIN,ltr308_i2c_read_reg(client, LTR308_ALS_GAIN));
+    LTR308_DEBUG("LTR308_PART_ID[0x%02X]           = [%02X]\n", LTR308_PART_ID,ltr308_i2c_read_reg(client, LTR308_PART_ID));
+    LTR308_DEBUG("LTR308_MAIN_STATUS[0x%02X]       = [%02X]\n", LTR308_MAIN_STATUS,ltr308_i2c_read_reg(client, LTR308_MAIN_STATUS));
+    LTR308_DEBUG("LTR308_ALS_DATA_0[0x%02X]        = [%02X]\n", LTR308_ALS_DATA_0,ltr308_i2c_read_reg(client, LTR308_ALS_DATA_0));
+    LTR308_DEBUG("LTR308_ALS_DATA_1[0x%02X]        = [%02X]\n", LTR308_ALS_DATA_1,ltr308_i2c_read_reg(client, LTR308_ALS_DATA_1));
+    LTR308_DEBUG("LTR308_ALS_DATA_2[0x%02X]        = [%02X]\n", LTR308_ALS_DATA_2,ltr308_i2c_read_reg(client, LTR308_ALS_DATA_2));
+    LTR308_DEBUG("LTR308_INT_CFG[0x%02X]           = [%02X]\n", LTR308_INT_CFG,ltr308_i2c_read_reg(client, LTR308_INT_CFG));
+    LTR308_DEBUG("LTR308_INT_PST[0x%02X]           = [%02X]\n", LTR308_INT_PST,ltr308_i2c_read_reg(client, LTR308_INT_PST));
+    LTR308_DEBUG("LTR308_ALS_THRES_UP_0[0x%02X]    = [%02X]\n", LTR308_ALS_THRES_UP_0,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_UP_0));
+    LTR308_DEBUG("LTR308_ALS_THRES_UP_1[0x%02X]    = [%02X]\n", LTR308_ALS_THRES_UP_1,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_UP_1));
+    LTR308_DEBUG("LTR308_ALS_THRES_UP_2[0x%02X]    = [%02X]\n", LTR308_ALS_THRES_UP_2,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_UP_2));
+    LTR308_DEBUG("LTR308_ALS_THRES_LOW_0[0x%02X]   = [%02X]\n", LTR308_ALS_THRES_LOW_0,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_LOW_0));
+    LTR308_DEBUG("LTR308_ALS_THRES_LOW_1[0x%02X]   = [%02X]\n", LTR308_ALS_THRES_LOW_1,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_LOW_1));
+    LTR308_DEBUG("LTR308_ALS_THRES_LOW_2[0x%02X]   = [%02X]\n", LTR308_ALS_THRES_LOW_2,ltr308_i2c_read_reg(client, LTR308_ALS_THRES_LOW_2));
+
+
+
 }
 
 static int ltr308_als_enable(struct i2c_client *client, int enable)
@@ -103,7 +105,7 @@ static int ltr308_als_reset(struct i2c_client *client)
     int ret=0;
 
     ret = ltr308_i2c_write_reg(client, LTR308_MAIN_CTRL, 0x10);
-    
+
     LTR308_DEBUG("0x00  = [%02x]\n", ltr308_i2c_read_reg(client, 0x00));
     return ret;
 }
@@ -117,41 +119,54 @@ static int ltr308_dev_init(struct i2c_client *client)
     LTR308_DEBUG("STATUS [0x%02X]     = [%02X]\n", LTR308_MAIN_STATUS,ltr308_i2c_read_reg(client, LTR308_MAIN_STATUS));
     msleep(PON_DELAY);
 
- //   ret = ltr308_als_reset(client);
- //   if (ret < 0)
- //       return ret;
+//   ret = ltr308_als_reset(client);
+//   if (ret < 0)
+//       return ret;
 
     mdelay(WAKEUP_DELAY);
     ltr308_als_enable(client,1); //ted add
 #if LTR308DBG
     ltr308_dump_regs(client);
 #endif
-   return ret;
+    return ret;
 }
 
 static ssize_t als_value_show(struct device *dev,
-                               struct device_attribute *attr, char *buf)
+                              struct device_attribute *attr, char *buf)
 {
-    int alsval_0, alsval_1, alsval_2;
+    int alsval_0, alsval_1, alsval_2,tmp,gain,res;
     long alsval;
-    long  luxdata_int;
+    long luxdata_int;
     struct i2c_client *client = container_of(dev,struct i2c_client,dev);
 
-        alsval_0 = ltr308_i2c_read_reg(client, LTR308_ALS_DATA_0);
-        alsval_1 = ltr308_i2c_read_reg(client, LTR308_ALS_DATA_1);
-        alsval_2 = ltr308_i2c_read_reg(client, LTR308_ALS_DATA_2);
-        alsval = (alsval_2<<16) + (alsval_1<<8) + alsval_0;
-        if (alsval == 0)
-            luxdata_int = 0;
-        else
-            luxdata_int = (alsval*8/10);
+    tmp = ltr308_i2c_read_reg(client, LTR308_ALS_GAIN);
+    tmp = tmp & 0x07;
+    gain = gaintbl[tmp];
+    tmp = ltr308_i2c_read_reg(client, LTR308_ALS_MEAS_RATE);
+    tmp = (tmp >> 4)&0x07;
+    res = inttbl[tmp];
 
-        
+    alsval_0 = ltr308_i2c_read_reg(client, LTR308_ALS_DATA_0);
+    alsval_1 = ltr308_i2c_read_reg(client, LTR308_ALS_DATA_1);
+    alsval_2 = ltr308_i2c_read_reg(client, LTR308_ALS_DATA_2);
+    alsval = (alsval_2<<16) + (alsval_1<<8) + alsval_0;
 
-  *buf = 0;
-  sprintf(buf, "%lu\n", luxdata_int);
-  return strlen(buf);
-  
+    if (alsval == 0)
+        luxdata_int = 0;
+    else
+    {
+        /*
+         *   Lux_calc = (0.6*ALS_data)/(GAIN*INT) without cover glass
+         *   Lux_calc = ((0.6*ALS_data)/(GAIN*INT))*Window_Factor with cover glass
+         */
+        luxdata_int = (((alsval*6)/10)/((gain*res)/4));
+    }
+
+
+    *buf = 0;
+    sprintf(buf, "%lu\n", luxdata_int);
+    return strlen(buf);
+
 
 }
 
@@ -177,7 +192,7 @@ static int ltr308_als_read_raw(struct iio_dev *indio_dev,
 {
 
     int alsval_0, alsval_1, alsval_2, alsval;
-    int luxdata_int;
+    //int luxdata_int;
     struct LTR308_data *data = iio_priv(indio_dev);
     switch (mask)
     {
@@ -187,13 +202,13 @@ static int ltr308_als_read_raw(struct iio_dev *indio_dev,
         alsval_1 = ltr308_i2c_read_reg(data->client, LTR308_ALS_DATA_1);
         alsval_2 = ltr308_i2c_read_reg(data->client, LTR308_ALS_DATA_2);
         alsval = (alsval_2<<16) + (alsval_1<<8) + alsval_0;
-
+#if 0
         if (alsval == 0)
             luxdata_int = 0;
         else
             luxdata_int = (alsval*8/10);
-
-        *val = luxdata_int;
+#endif
+        *val = alsval;
         return IIO_VAL_INT;
     case IIO_CHAN_INFO_SCALE:
 
@@ -268,11 +283,11 @@ static int ltr308_probe(struct i2c_client *client, const struct i2c_device_id *i
 
     ret = devm_iio_device_register(&client->dev, indio_dev);
     if(ret < 0)
-		goto err_exit;
-	ret = sysfs_create_group(&indio_dev->dev.kobj, &attribute_group);
+        goto err_exit;
+    ret = sysfs_create_group(&indio_dev->dev.kobj, &attribute_group);
     if(ret < 0)
-		goto err_exit;
-		
+        goto err_exit;
+
     return ret;
 
 err_exit:

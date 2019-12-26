@@ -32,6 +32,9 @@ struct LTR308_data
 
 };
 
+const int gaintbl[5] = {1, 3, 6, 9, 8};
+const int inttbl[5] = {1, 2, 4, 8, 16};  // 4x to prevent float
+
 
 /* LTR308 Registers */
 
