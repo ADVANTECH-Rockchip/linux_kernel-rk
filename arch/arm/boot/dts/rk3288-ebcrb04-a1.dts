@@ -392,7 +392,7 @@
 
 
 &disp_timings {
-	native-mode = <&edp_1920x1080>;
+	native-mode = <&lvds_g070vw01>;
 	native-edp-mode = <&edp_1920x1080>;
 	native-lvds-mode = <&lvds_g070vw01>;
 };
@@ -776,8 +776,6 @@
 		codec-avdd-delay = <100>;
 		codec-micvdd-gpio = <&gpio3 11 GPIO_ACTIVE_HIGH>;
 		codec-spkvdd-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>;
-		amp-shutdown-gpio = <&gpio3 13 GPIO_ACTIVE_LOW>;
-		amp-mute-gpio = <&gpio6 5 GPIO_ACTIVE_HIGH>;
 
 		clocks = <&cru SCLK_I2S0_OUT>;
 		clock-names = "mclk";
@@ -785,7 +783,7 @@
 		interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&i2s0_mclk &codec_avdd &codec_micvdd &codec_spkvdd &amp_shutdown &amp_mute>;
+		pinctrl-0 = <&i2s0_mclk &codec_avdd &codec_micvdd &codec_spkvdd>;
 	};
 };
 
@@ -991,12 +989,6 @@
 		};
 		codec_spkvdd: codec-spkvdd {
 			rockchip,pins = <3 12 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		amp_shutdown: amp-shutdown {
-			rockchip,pins = <3 13 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-		amp_mute: amp-mute {
-			rockchip,pins = <6 5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 
