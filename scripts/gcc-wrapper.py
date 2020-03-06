@@ -37,9 +37,6 @@ import os
 import sys
 import subprocess
 
-# Note that gcc uses unicode, which may depend on the locale.  TODO:
-# force LANG to be set to en_US.UTF-8 to get consistent warnings.
-
 allowed_warnings = set([
     "posix-cpu-timers.c:1268", # kernel/time/posix-cpu-timers.c:1268:13: warning: 'now' may be used uninitialized in this function
     "af_unix.c:1036", # net/unix/af_unix.c:1036:20: warning: 'hash' may be used uninitialized in this function
@@ -54,6 +51,8 @@ allowed_warnings = set([
     "bounds.c:15", # kernel/bounds.c:15:6: warning: no previous prototype for ‘foo’
     "cpufeature.h:157", # arch/arm64/include/asm/cpufeature.h:157:68: warning: signed and unsigned type in conditional expression
     "sched.h:1211", # include/linux/sched.h:1211:1: warning: type qualifiers ignored on function return type
+    "halphyrf_8188e_ce.c:2208", # drivers/net/wireless/rockchip_wlan/rtl8189es/hal/phydm/rtl8188e/halphyrf_8188e_ce.c:2208:1: warning: the frame size of 1056 bytes is larger than 1024 bytes
+    "halphyrf_8723b_ce.c:2879", # drivers/net/wireless/rockchip_wlan/rtl8723bu/hal/phydm/rtl8723b/halphyrf_8723b_ce.c:2879:1: warning: the frame size of 1056 bytes is larger than 1024 bytes
  ])
 
 # Capture the name of the object file, can find it.
@@ -91,7 +90,9 @@ def run_gcc():
     compiler = sys.argv[0]
 
     try:
-        proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+        env = os.environ.copy()
+        env['LC_ALL'] = 'C'
+        proc = subprocess.Popen(args, stderr=subprocess.PIPE, env=env)
         for line in proc.stderr:
             print (line.decode("utf-8"), end="")
             interpret_warning(line.decode("utf-8"))
