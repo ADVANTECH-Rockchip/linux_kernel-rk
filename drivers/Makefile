@@ -113,7 +113,11 @@ obj-$(CONFIG_HWMON)		+= hwmon/
 obj-$(CONFIG_THERMAL)		+= thermal/
 obj-$(CONFIG_WATCHDOG)		+= watchdog/
 obj-$(CONFIG_MD)		+= md/
+ifdef CONFIG_ARCH_ADVANTECH
 obj-$(CONFIG_BT)		+= bluetooth/
+else
+obj-$(CONFIG_BT)		+= bluetooth_back/
+endif
 obj-$(CONFIG_ACCESSIBILITY)	+= accessibility/
 obj-$(CONFIG_ISDN)		+= isdn/
 obj-$(CONFIG_EDAC)		+= edac/
