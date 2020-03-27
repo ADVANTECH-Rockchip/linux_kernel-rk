@@ -10341,7 +10341,7 @@ dhd_dbus_disconnect_cb(void *arg)
 #ifdef CONFIG_PLAT_ROCKCHIP
 #include <linux/rfkill-wlan.h>
 
-#define CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP 1
+//#define CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP 1
 
 extern int get_wifi_chip_type(void);
 extern char WIFI_MODULE_NAME[];
@@ -10399,13 +10399,18 @@ void rockchip_wifi_exit_module_rkwifi(void)
     printk("=======================================================\n");
     dhd_module_exit();
 }
+#ifdef CONFIG_WIFI_BUILD_MODULE
+module_init(rockchip_wifi_init_module_rkwifi);
+module_exit(rockchip_wifi_exit_module_rkwifi);
+#else
 #ifdef CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP
 late_initcall(rockchip_wifi_init_module_rkwifi);
 module_exit(rockchip_wifi_exit_module_rkwifi);
-#else /* CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP */
-EXPORT_SYMBOL(rockchip_wifi_init_module_rkwifi);
-EXPORT_SYMBOL(rockchip_wifi_exit_module_rkwifi);
-#endif /* CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP */
+#else
+module_init(rockchip_wifi_init_module_rkwifi);
+module_exit(rockchip_wifi_exit_module_rkwifi);
+#endif
+#endif
 #else /* CONFIG_PLAT_ROCKCHIP */
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0)

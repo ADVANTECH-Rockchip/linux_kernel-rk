@@ -114,7 +114,7 @@ obj-$(CONFIG_THERMAL)		+= thermal/
 obj-$(CONFIG_WATCHDOG)		+= watchdog/
 obj-$(CONFIG_MD)		+= md/
 ifdef CONFIG_ARCH_ADVANTECH
-obj-$(CONFIG_BT)		+= bluetooth/
+obj-$(CONFIG_BT)		+= bluetooth_back/
 else
 obj-$(CONFIG_BT)		+= bluetooth_back/
 endif

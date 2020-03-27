@@ -326,8 +326,8 @@ DHDOFILES += dhd_gpio.o
 DHDOFILES += rkversion.o
 endif
 
-cywdhd-objs := $(DHDOFILES)
-obj-$(DRIVER_TYPE)   += cywdhd.o
+bcmdhd-objs := $(DHDOFILES)
+obj-$(DRIVER_TYPE)   += bcmdhd.o
 
 all:
 	@echo "$(MAKE) --no-print-directory -C $(KDIR) SUBDIRS=$(CURDIR) modules"

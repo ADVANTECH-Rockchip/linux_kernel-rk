@@ -1,0 +1,35 @@
+/*
+ * Advantech. LCD_PH102600T013 ver 2.0  1024 x 600
+ *
+ */
+/ {
+	disp_timings: display-timings {
+		lvds_ph102600t013: lvds-ph102600t013 {
+			rockchip,data-mapping = "vesa";
+			rockchip,data-width = <24>;
+			rockchip,output = "lvds";
+
+			screen-type = <SCREEN_LVDS>;
+			lvds-format = <LVDS_8BIT_1>;
+			out-face    = <OUT_P888>;
+			color-mode = <COLOR_RGB>;
+			
+			clock-frequency = <51200000>;
+			hactive = <1024>;
+			vactive = <600>;
+			hback-porch = <100>;
+			hfront-porch = <120>;
+			vback-porch = <10>;
+			vfront-porch = <15>;
+			hsync-len = <100>;
+			vsync-len = <10>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+			de-active = <0>;
+			pixelclk-active = <0>;
+			swap-rb = <0>;
+			swap-rg = <0>;
+			swap-gb = <0>;
+		};
+	};
+};
