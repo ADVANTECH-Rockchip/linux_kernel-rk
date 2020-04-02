@@ -51,12 +51,6 @@
 // lvds panel
 #include <dt-bindings/display/screen-timing/lcd-ph102600t013.dtsi>
 
-#include <dt-bindings/display/screen-timing/lcd-g070vw01.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-g150xgel05.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-g215hvn01.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-p460hvn02.1.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-idk1110wp.dtsi>
-
 / {
 	compatible = "rockchip,rk3288-ebcrb04-a1", "rockchip,rk3288";
 	model = "EBC-RB04 AKS00000000 V1000";
@@ -394,7 +388,7 @@
 
 
 &disp_timings {
-	native-mode = <&lvds_g070vw01>;
+	native-mode = <&lvds_ph102600t013>;
 };
 
 &lvds{
