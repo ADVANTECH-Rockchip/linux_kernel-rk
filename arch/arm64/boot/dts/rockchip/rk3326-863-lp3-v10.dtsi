@@ -11,7 +11,7 @@
 #include <dt-bindings/sensor-dev.h>
 #include "rk3326.dtsi"
 #include "rk3326-863-cif-sensor.dtsi"
-#include "px30-android.dtsi"
+#include "rk3326-android.dtsi"
 
 / {
 	adc-keys {
@@ -85,7 +85,7 @@
 	rk817-sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,format = "i2s";
-		simple-audio-card,name = "rockchip,rk817-codec";
+		simple-audio-card,name = "rockchip-rk817-codec";
 		simple-audio-card,mclk-fs = <256>;
 		simple-audio-card,widgets =
 			"Microphone", "Mic Jack",
@@ -156,78 +156,6 @@
 	};
 };
 
-&i2c2 {
-	status = "okay";
-
-	gc0312@21 {
-		status = "okay";
-		compatible = "galaxycore,gc0312";
-		reg = <0x21>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&cif_clkout_m0>;
-
-		clocks = <&cru SCLK_CIF_OUT>;
-		clock-names = "xvclk";
-
-		avdd-supply = <&vcc2v8_dvp>;
-		dovdd-supply = <&vcc1v8_dvp>;
-		dvdd-supply = <&vcc1v8_dvp>;
-
-		pwdn-gpios = <&gpio2 14 GPIO_ACTIVE_HIGH>;
-
-		port {
-			gc0312_out: endpoint {
-				remote-endpoint = <&dvp_in_fcam>;
-			};
-		};
-	};
-
-	gc2145@3c {
-		status = "okay";
-		compatible = "galaxycore,gc2145";
-		reg = <0x3c>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&cif_clkout_m0>;
-
-		clocks = <&cru SCLK_CIF_OUT>;
-		clock-names = "xvclk";
-
-		avdd-supply = <&vcc2v8_dvp>;
-		dovdd-supply = <&vcc1v8_dvp>;
-		dvdd-supply = <&vcc1v8_dvp>;
-
-		pwdn-gpios = <&gpio2 14 GPIO_ACTIVE_HIGH>;
-
-		port {
-			gc2145_out: endpoint {
-				remote-endpoint = <&dvp_in_bcam>;
-			};
-		};
-	};
-};
-
-&rkisp1 {
-	status = "okay";
-
-	pinctrl-names = "default";
-	pinctrl-0 = <&cif_clkout_m0 &dvp_d0d1_m0 &dvp_d2d9_m0 &dvp_d10d11_m0>;
-
-	ports {
-		port@0 {
-			dvp_in_fcam: endpoint@0 {
-				remote-endpoint = <&gc0312_out>;
-			};
-
-			dvp_in_bcam: endpoint@1 {
-				remote-endpoint = <&gc2145_out>;
-			};
-		};
-	};
-};
-
-&isp_mmu {
-	status = "okay";
-};
 
 &display_subsystem {
 	status = "okay";
@@ -289,6 +217,15 @@
 	};
 };
 
+&dsi_in_vopb {
+	status = "okay";
+};
+
+&route_dsi {
+	connect = <&vopb_out_dsi>;
+	status = "okay";
+};
+
 &bus_apll {
 	bus-supply = <&vdd_logic>;
 	status = "okay";
@@ -318,10 +255,6 @@
 		/*MHz	MHz	uV */
 		451	800	75000
 	>;
-};
-
-&dsi_in_vopl {
-	status = "disabled";
 };
 
 &dfi {
@@ -701,10 +634,6 @@
 	vccio5-supply = <&vcc_3v0>;
 };
 
-&mipi_dphy {
-	status = "okay";
-};
-
 &nandc0 {
 	status = "okay";
 };
@@ -765,10 +694,6 @@
 	rockchip,sleep-debug-en = <1>;
 };
 
-&route_dsi {
-	status = "okay";
-};
-
 &saradc {
 	status = "okay";
 	vref-supply = <&vcc1v8_soc>;
@@ -803,7 +728,7 @@
 };
 
 &tsadc {
-	pinctrl-names = "init", "default";
+	pinctrl-names = "gpio", "otpout";
 	pinctrl-0 = <&tsadc_otp_gpio>;
 	pinctrl-1 = <&tsadc_otp_out>;
 	status = "okay";
@@ -842,14 +767,6 @@
 };
 
 &vopb_mmu {
-	status = "okay";
-};
-
-&vopl {
-	status = "okay";
-};
-
-&vopl_mmu {
 	status = "okay";
 };
 

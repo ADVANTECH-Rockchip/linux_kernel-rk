@@ -49,11 +49,7 @@
 #include "rk3288-linux.dtsi"
 
 // lvds panel
-#include <dt-bindings/display/screen-timing/lcd-g070vw01.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-g150xgel05.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-g215hvn01.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-p460hvn02.1.dtsi>
-#include <dt-bindings/display/screen-timing/lcd-idk1110wp.dtsi>
+#include <dt-bindings/display/screen-timing/lcd-ph102600t013.dtsi>
 
 / {
 	compatible = "rockchip,rk3288-ebcrb04-a1", "rockchip,rk3288";
@@ -161,9 +157,9 @@
     wireless-wlan {
 		compatible = "wlan-platdata";
 		rockchip,grf = <&grf>;
-		wifi_chip_type = "rtl8723bs";
-		sdio_vref = <3300>;
-		//keep_wifi_power_on = <1>;
+		wifi_chip_type = "ap6212";
+		sdio_vref = <1800>;
+		keep_wifi_power_on = <1>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&wifi_pwr_h>;
 		//pinctrl-1 = <&wifi_enable_h>;
@@ -392,9 +388,7 @@
 
 
 &disp_timings {
-	native-mode = <&lvds_g070vw01>;
-	//native-edp-mode = <&edp_1920x1080>;
-	native-lvds-mode = <&lvds_g070vw01>;
+	native-mode = <&lvds_ph102600t013>;
 };
 
 &lvds{
@@ -491,7 +485,7 @@
 	num-slots = <1>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&emmc_clk &emmc_cmd &emmc_pwr &emmc_bus8>;
-	max-frequency = <75000000>;
+	max-frequency = <100000000>;
 	mmc-hs200-1_8v;
 	mmc-ddr-1_8v;
 	status = "okay";
@@ -519,8 +513,8 @@
 &sdio0 {
 	status = "okay";
 	max-frequency = <150000000>;
-	clock-frequency = <50000000>;
-	clock-freq-min-max = <200000 50000000>;
+	clock-frequency = <150000000>;
+	clock-freq-min-max = <200000 150000000>;
 
 	bus-width = <4>;
 	cap-sd-highspeed;
@@ -552,7 +546,7 @@
 	gpio1830 = <&vcc_io>;
 	lcdc-supply = <&vcca_33>;
 	sdcard-supply = <&vccio_sd>;
-	wifi-supply = <&vcc_io>;
+	wifi-supply = <&vcca_18>;
 };
 
 &i2c0 {
@@ -765,7 +759,7 @@
 
 &i2c2 {
 	status = "okay";
-	
+
 	rt5660: rt5660@1c {
 		#sound-dai-cells = <0>;
 		compatible = "realtek,rt5660";
@@ -890,7 +884,7 @@
 };
 
 &uart2 {
-	status = "okay";
+	status = "disabled";
 	//dmas = <&dmac_bus_s 4>, <&dmac_bus_s 5>;
 	//dma-names = "tx", "rx";
 };

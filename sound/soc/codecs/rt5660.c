@@ -596,14 +596,17 @@ static int rt5660_lout_event(struct snd_soc_dapm_widget *w,
 				RT5660_PWR_CLS_D, 0);
 		}
 	#endif
-
-		mdelay(50);
-		gpio_direction_output(rt5660->amp_mute_gpio, rt5660->amp_mute_gpio_active);
+		if (gpio_is_valid(rt5660->amp_mute_gpio)){
+			mdelay(50);
+			gpio_direction_output(rt5660->amp_mute_gpio, rt5660->amp_mute_gpio_active);
+		}
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		gpio_direction_output(rt5660->amp_mute_gpio, !rt5660->amp_mute_gpio_active);
-		mdelay(50);
+		if (gpio_is_valid(rt5660->amp_mute_gpio)){
+			gpio_direction_output(rt5660->amp_mute_gpio, !rt5660->amp_mute_gpio_active);
+			mdelay(50);
+		}
 	
 		snd_soc_update_bits(codec, RT5660_LOUT_AMP_CTRL,
 			RT5660_LOUT_CO_MASK | RT5660_LOUT_CB_MASK,
