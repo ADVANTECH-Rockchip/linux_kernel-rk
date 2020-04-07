@@ -393,7 +393,7 @@
 
 &disp_timings {
 	native-mode = <&lvds_g070vw01>;
-	native-edp-mode = <&edp_1920x1080>;
+	//native-edp-mode = <&edp_1920x1080>;
 	native-lvds-mode = <&lvds_g070vw01>;
 };
 
@@ -793,6 +793,7 @@
 
 &i2c4 {
 	status = "okay";
+	clock-frequency = <400000>;
 };
 
 &i2c5 {
@@ -807,6 +808,14 @@
 &spi1 {
 	status = "okay";
 	max-freq = <48000000>;
+	
+	spidev@0 {
+		compatible = "spidev";
+		spi-max-frequency = <24000000>;
+		reg = <0>;
+		spi-cpha;
+		spi-cpol;
+	};
 };
 
 &spi2 {
