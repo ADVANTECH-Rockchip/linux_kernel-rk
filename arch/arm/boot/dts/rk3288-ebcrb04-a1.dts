@@ -804,7 +804,7 @@
 	max-freq = <48000000>;
 	
 	spidev@0 {
-		compatible = "spidev";
+		compatible = "rockchip,spidev";
 		spi-max-frequency = <24000000>;
 		reg = <0>;
 		spi-cpha;
