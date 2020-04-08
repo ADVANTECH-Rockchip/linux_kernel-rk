@@ -1468,8 +1468,22 @@ static struct platform_driver rk3x_i2c_driver = {
 		.pm = &rk3x_i2c_pm_ops,
 	},
 };
+#ifdef CONFIG_ARCH_ADVANTECH
+static int __init rk3x_i2c_driver_init(void)
+{
+	return platform_driver_register(&rk3x_i2c_driver);
+}
 
+static void __exit rk3x_i2c_driver_exit(void)
+{
+	platform_driver_unregister(&rk3x_i2c_driver);
+}
+
+subsys_initcall(rk3x_i2c_driver_init);
+module_exit(rk3x_i2c_driver_exit);
+#else
 module_platform_driver(rk3x_i2c_driver);
+#endif
 
 MODULE_DESCRIPTION("Rockchip RK3xxx I2C Bus driver");
 MODULE_AUTHOR("Max Schwarz <max.schwarz@online.de>");

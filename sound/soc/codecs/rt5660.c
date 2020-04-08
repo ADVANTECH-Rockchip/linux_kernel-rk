@@ -1485,6 +1485,8 @@ static int rt5660_i2c_probe(struct i2c_client *i2c,
 		rt5660->rk_grf_base = (unsigned long)of_iomap(node, 0);
 	else
 		dev_err(&i2c->dev, "No rockchip,grf phandle specified");
+	//disable i2s mclk & bclk
+	__raw_writel(0x90009,(void *)(rt5660->rk_cru_base+0x0170));
 #endif
 
 	rt5660->regmap = devm_regmap_init_i2c(i2c, &rt5660_regmap);
@@ -1582,7 +1584,21 @@ static struct i2c_driver rt5660_i2c_driver = {
 #endif
 	.id_table = rt5660_i2c_id,
 };
+#ifdef CONFIG_ARCH_ADVANTECH
+static int __init rt5660_i2c_init(void)
+{
+	return i2c_add_driver(&rt5660_i2c_driver);
+}
+subsys_initcall(rt5660_i2c_init);
+
+static void __exit rt5660_i2c_exit(void)
+{
+	i2c_del_driver(&rt5660_i2c_driver);
+}
+module_exit(rt5660_i2c_exit);
+#else
 module_i2c_driver(rt5660_i2c_driver);
+#endif
 
 MODULE_DESCRIPTION("ASoC RT5660 driver");
 MODULE_AUTHOR("Oder Chiou <oder_chiou@realtek.com>");
