@@ -128,22 +128,17 @@
 		pwms = <&pwm1 0 25000 0>; 
 	};
 
-	gpio-keys {
-		compatible = "gpio-keys";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		autorepeat;
+	rk-keypad {
+		compatible = "rockchip,key";
+		status = "okay";
 
-		pinctrl-names = "default";
-		pinctrl-0 = <&pmic_pwr>;
-
-		button@0 {
+		power-key {
 			gpios = <&gpio0 RK_PA5 GPIO_ACTIVE_LOW>;
 			linux,code = <116>;
-			label = "GPIO Key Power";
-			linux,input-type = <1>;
-			gpio-key,wakeup = <1>;
-			debounce-interval = <100>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pmic_pwr>;
+			label = "power";
+			gpio-key,wakeup;
 		};
 	};
 
