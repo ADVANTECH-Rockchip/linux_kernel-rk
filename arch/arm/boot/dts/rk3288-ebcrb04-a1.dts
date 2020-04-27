@@ -348,6 +348,7 @@
 		regulator-boot-on;
 	};
 
+#if 0
 	vcc_phy: vcc-phy-regulator {
 		compatible = "regulator-fixed";
 		enable-active-high;
@@ -360,6 +361,7 @@
 		regulator-always-on;
 		regulator-boot-on;
 	};
+#endif
 
 	misc-adv-gpio {
 		compatible = "misc-adv-gpio";
@@ -664,7 +666,7 @@
 				regulator-boot-on;
 				regulator-min-microvolt = <1800000>;
 				regulator-init-microvolt = <1800000>;
-				regulator-max-microvolt = <3300000>;
+				regulator-max-microvolt = <1800000>;
 				regulator-name = "vcca_18";
 				regulator-state-mem {
 					regulator-off-in-suspend;
@@ -899,7 +901,7 @@
 
 &gmac {
 	status = "okay";
-	phy-supply = <&vcc_phy>;
+	phy-supply = <&vcca_18>;
 	phy-mode = "rgmii";
 	clock_in_out = "input";
 	snps,reset-gpio = <&gpio4 7 0>;
