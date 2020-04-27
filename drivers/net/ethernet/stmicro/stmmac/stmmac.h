@@ -132,6 +132,9 @@ struct stmmac_priv {
 	struct dentry *dbgfs_rings_status;
 	struct dentry *dbgfs_dma_cap;
 #endif
+#ifdef CONFIG_ARCH_ADVANTECH
+	bool first_init;
+#endif
 };
 
 int stmmac_mdio_unregister(struct net_device *ndev);

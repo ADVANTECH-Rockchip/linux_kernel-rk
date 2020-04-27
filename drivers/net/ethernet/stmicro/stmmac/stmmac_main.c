@@ -1867,6 +1867,7 @@ static int stmmac_open(struct net_device *dev)
 
 	napi_enable(&priv->napi);
 	netif_start_queue(dev);
+	priv->first_init = 1;
 
 	return 0;
 
@@ -1964,6 +1965,11 @@ static netdev_tx_t stmmac_xmit(struct sk_buff *skb, struct net_device *dev)
 	unsigned int entry, first_entry;
 	struct dma_desc *desc, *first;
 	unsigned int enh_desc;
+
+	if(priv->first_init && (priv->phydev->state != PHY_RUNNING))
+		return NETDEV_TX_OK;
+	else
+		priv->first_init = 0;
 
 	if (unlikely(stmmac_tx_avail(priv) < nfrags + 1)) {
 		if (!netif_queue_stopped(dev)) {
@@ -2982,6 +2988,26 @@ static int net_testmode_write(struct file *file, const char __user * buffer,
 			phy_write_mmd_indirect(phydev, 0x25, DP83867_DEVADDR, 0x0480);//output test mode to all channels
 		}
 	}
+	else if (!memcmp(line, "6", 1))
+	{
+		if(TI_DP83867_PHY_ID == phydev->phy_id)
+		{
+			printk("Basic Register:\n");
+			printk("0x00~0x0f:");
+			for(i=0;i<0x10;i++)
+				printk("0x%04x ",phy_read(phydev, i));
+			printk("\n0x10~0x1f:");
+			for(i=0x10;i<0x20;i++)
+				printk("0x%04x ",phy_read(phydev, i));
+			printk("\n");
+			printk("PHY REG 0x0031=0x%x\n",phy_read_mmd_indirect(phydev, 0x0031, DP83867_DEVADDR));
+			printk("PHY REG 0x0032=0x%x\n",phy_read_mmd_indirect(phydev, 0x0032, DP83867_DEVADDR));
+			printk("PHY REG 0x006e=0x%x\n",phy_read_mmd_indirect(phydev, 0x006e, DP83867_DEVADDR));
+			printk("PHY REG 0x006f=0x%x\n",phy_read_mmd_indirect(phydev, 0x006f, DP83867_DEVADDR));
+			printk("PHY REG 0x0086=0x%x\n",phy_read_mmd_indirect(phydev, 0x0086, DP83867_DEVADDR));
+			printk("PHY REG 0x0170=0x%x\n",phy_read_mmd_indirect(phydev, 0x0170, DP83867_DEVADDR));
+		}
+	}
 
 	return count;
 }
@@ -3010,6 +3036,10 @@ int stmmac_dvr_probe(struct device *device,
 	int ret = 0;
 	struct net_device *ndev = NULL;
 	struct stmmac_priv *priv;
+#ifdef CONFIG_ARCH_ADVANTECH
+	int phy_id;
+	int val;
+#endif
 
 	ndev = alloc_etherdev(sizeof(struct stmmac_priv));
 	if (!ndev)
@@ -3143,6 +3173,29 @@ int stmmac_dvr_probe(struct device *device,
 			goto error_mdio_register;
 		}
 	}
+#ifdef CONFIG_ARCH_ADVANTECH
+		/* check for attached phy */
+		for (phy_id = 0; (phy_id < PHY_MAX_ADDR); phy_id++) {
+			if ((priv->mii->phy_mask & (1 << phy_id)))
+				continue;
+			if (priv->mii->phy_map[phy_id] == NULL)
+				continue;
+			if (priv->mii->phy_map[phy_id]->phy_id == 0)
+				continue;
+			break;
+		}
+		if (phy_id < PHY_MAX_ADDR) {	
+			/*Change PHY LED status*/
+			if(TI_DP83867_PHY_ID == priv->mii->phy_map[phy_id]->phy_id)
+			{
+				val = priv->mii->read(priv->mii, phy_id, 0x18);
+				val &= 0xf000;
+				val |= 0x65b;
+				priv->mii->write(priv->mii, phy_id, 0x18, val);
+				priv->phydev = priv->mii->phy_map[phy_id];
+			}
+		}
+#endif
 
 	ret = register_netdev(ndev);
 	if (ret) {
