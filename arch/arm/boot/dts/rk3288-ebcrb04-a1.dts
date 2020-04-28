@@ -171,10 +171,8 @@
 
 	wireless-bluetooth {
         compatible = "bluetooth-platdata";
-        uart_rts_gpios = <&gpio4 RK_PC3 GPIO_ACTIVE_LOW>;
         pinctrl-names = "default", "rts_gpio";
-        pinctrl-0 = <&uart0_rts &bt_pwr_h>;
-        pinctrl-1 = <&uart0_rts_gpio &bt_pwr_h>;
+        pinctrl-0 = <&bt_pwr_h>;
         BT,power_gpio = <&gpio5 RK_PC1 GPIO_ACTIVE_HIGH>;
         //BT,reset_gpio    = <&gpio4 29 GPIO_ACTIVE_HIGH>;
         //BT,wake_gpio     = <&gpio4 26 GPIO_ACTIVE_HIGH>;
@@ -871,7 +869,7 @@
 
 &uart0 {
 	status = "okay";
-	pinctrl-0 = <&uart0_xfer &uart0_cts>;
+	pinctrl-0 = <&uart0_xfer &uart0_cts &uart0_rts>;
 	dmas = <&dmac_peri 1>, <&dmac_peri 2>;
 	dma-names = "tx", "rx";
 };
@@ -1053,9 +1051,6 @@
 	};
 
 	wireless-bluetooth {
-		uart0_rts_gpio: uart0-rts-gpio {
-			rockchip,pins = <4 19 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
 		bt_pwr_h: bt-pwr-h {
 			rockchip,pins =<5 17 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
