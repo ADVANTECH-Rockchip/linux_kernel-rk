@@ -1029,6 +1029,10 @@
 	status = "okay";
 };
 
+&rockchip_suspend {
+	status = "okay";
+};
+
 &pinctrl {
 	pcfg_pull_up_12ma: pcfg-pull-up-12ma {
 		bias-pull-up;
