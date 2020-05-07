@@ -144,6 +144,14 @@ enum MCU_IOCTL {
 	MCU_SETBYPASS,
 };
 
+#ifdef CONFIG_ARCH_ADVANTECH
+static bool lvds_dual_channel = false;
+bool get_lvds_channel(void)
+{
+    return lvds_dual_channel;
+}
+#endif
+
 static void panel_simple_sleep(unsigned int msec)
 {
 	if (msec > 20)
@@ -580,7 +588,14 @@ static int panel_simple_of_get_lvds_mode(struct panel_simple *panel)
 				continue;
 
 			if(!memcmp(disp->timings[i]->name,screen_name,strlen(screen_name)))
+			{
+				if(disp->timings[i]->screen_type == SCREEN_DUAL_LVDS || 
+				   disp->timings[i]->screen_type == SCREEN_DUAL_LVDS_10BIT)
+				{
+				    lvds_dual_channel = true;
+				}
 				break;
+			}
 		}
 
 		if(i < disp->num_timings){

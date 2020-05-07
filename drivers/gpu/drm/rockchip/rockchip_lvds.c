@@ -359,6 +359,9 @@ static const struct component_ops rockchip_lvds_component_ops = {
 	.unbind = rockchip_lvds_unbind,
 };
 
+#ifdef CONFIG_ARCH_ADVANTECH
+extern bool get_lvds_channel(void);
+#endif
 static int rockchip_lvds_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -448,6 +451,9 @@ static void rk3288_lvds_enable(struct rockchip_lvds *lvds)
 	int pipe;
 	u32 val;
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	lvds->dual_channel = get_lvds_channel();
+#endif
 	pipe = drm_of_encoder_active_endpoint_id(lvds->dev->of_node,
 						 &lvds->encoder);
 	regmap_write(lvds->grf, RK3288_GRF_SOC_CON6,
