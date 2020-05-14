@@ -189,6 +189,17 @@
 		regulator-name = "vdd_lvds";
 	};
 
+	vcc_otg_vbus: otg-vbus-regulator {
+		compatible = "regulator-fixed";
+		gpio = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&otg_vbus_drv>;
+		regulator-name = "vcc_otg_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+	};
+
 #if 0
 	rockchip-rt5660 {
 		compatible = "rockchip,rockchip-audio-rt5660";
@@ -214,55 +225,6 @@
 			"Microphone Jack", "micbias1",
 			"Headphone Jack", "HPOL",
 			"Headphone Jack", "HPOR";
-	};
-
-	dwc_control_usb: dwc-control-usb@ff770284 {
-		compatible = "rockchip,rk3288-dwc-control-usb";
-		status = "okay";
-		pinctrl-names = "default";
-		pinctrl-0 = <&host_vbus_drv &otg_vbus_drv>;
-		reg = <0x0 0xff770284 0x0 0x04>, <0x0 0xff770288 0x0 0x04>,
-		      <0x0 0xff7702cc 0x0 0x04>, <0x0 0xff7702d4 0x0 0x04>,
-		      <0x0 0xff770320 0x0 0x14>, <0x0 0xff770334 0x0 0x14>,
-		      <0x0 0xff770348 0x0 0x10>, <0x0 0xff770358 0x0 0x08>,
-		      <0x0 0xff770360 0x0 0x08>;
-		reg-names = "GRF_SOC_STATUS1" ,"GRF_SOC_STATUS2",
-			    "GRF_SOC_STATUS19", "GRF_SOC_STATUS21",
-			    "GRF_UOC0_BASE", "GRF_UOC1_BASE",
-			    "GRF_UOC2_BASE", "GRF_UOC3_BASE",
-			    "GRF_UOC4_BASE";
-		interrupts = <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 95 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
-		interrupt-names = "otg_id", "otg_bvalid",
-				  "otg_linestate", "host0_linestate",
-				  "host1_linestate";
-		clocks = <&cru HCLK_USB_PERI>;
-		clock-names = "hclk_usb_peri";
-
-		otg_drv_gpio = <&gpio0 12 GPIO_ACTIVE_LOW>;
-		host_drv_gpio = <&gpio0 14 GPIO_ACTIVE_LOW>;
-		rockchip,remote_wakeup;
-		rockchip,usb_irq_wakeup;
-
-		usb_bc {
-			compatible = "synopsys,phy";
-			rk_usb,bvalid     = <0x288 14 1>;
-			rk_usb,iddig      = <0x288 17 1>;
-			rk_usb,dcdenb     = <0x328 14 1>;
-			rk_usb,vdatsrcenb = <0x328  7 1>;
-			rk_usb,vdatdetenb = <0x328  6 1>;
-			rk_usb,chrgsel    = <0x328  5 1>;
-			rk_usb,chgdet     = <0x2cc 23 1>;
-			rk_usb,fsvminus   = <0x2cc 25 1>;
-			rk_usb,fsvplus    = <0x2cc 24 1>;
-		};
-		
-		usb_uart {
-			status = "disabled";
-		};
 	};
 
 	lvds_panel
@@ -865,6 +827,10 @@
 
 &usb_otg {
 	status = "okay";
+};
+
+&usbphy0 {
+	vbus-supply = <&vcc_otg_vbus>;
 };
 
 &uart0 {

@@ -3272,9 +3272,6 @@ void dwc2_hcd_queue_transactions(struct dwc2_hsotg *hsotg,
 	}
 }
 
-#ifdef CONFIG_ARCH_ADVANTECH
-extern void usb20otg_power_enable(int enable);
-#endif
 static void dwc2_conn_id_status_change(struct work_struct *work)
 {
 	struct dwc2_hsotg *hsotg = container_of(work, struct dwc2_hsotg,
@@ -3294,9 +3291,6 @@ static void dwc2_conn_id_status_change(struct work_struct *work)
 	if (gotgctl & GOTGCTL_CONID_B) {
 		/* Wait for switch to device mode */
 		dev_dbg(hsotg->dev, "connId B\n");
-	#ifdef CONFIG_ARCH_ADVANTECH
-		usb20otg_power_enable(0);
-	#endif
 		if (hsotg->bus_suspended) {
 			dev_info(hsotg->dev,
 				 "Do port resume before switching to device mode\n");
@@ -3354,9 +3348,6 @@ host:
 		dwc2_core_init(hsotg, false);
 		dwc2_enable_global_interrupts(hsotg);
 		dwc2_hcd_start(hsotg);
-	#ifdef CONFIG_ARCH_ADVANTECH
-		usb20otg_power_enable(1);
-	#endif
 	}
 }
 
