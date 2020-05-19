@@ -119,22 +119,17 @@
 		pwms = <&pwm1 0 25000 0>; 
 	};
 
-	gpio-keys {
-		compatible = "gpio-keys";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		autorepeat;
+	rk-keypad {
+		compatible = "rockchip,key";
+		status = "okay";
 
-		pinctrl-names = "default";
-		pinctrl-0 = <&pmic_pwr>;
-
-		button@0 {
+		power-key {
 			gpios = <&gpio0 RK_PA5 GPIO_ACTIVE_LOW>;
 			linux,code = <116>;
-			label = "GPIO Key Power";
-			linux,input-type = <1>;
-			gpio-key,wakeup = <1>;
-			debounce-interval = <100>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pmic_pwr>;
+			label = "power";
+			gpio-key,wakeup;
 		};
 	};
 
@@ -246,9 +241,6 @@
 		rockchip,output = "lvds";
 	
 		status = "disabled";
-		pinctrl-names = "default";
-		pinctrl-0 = <&vdd_lvds_pwr>;
-
 		display-timings = <&disp_timings>;
 		
 		ports {
@@ -629,7 +621,8 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-name = "vcca_18";
 				regulator-state-mem {
-					regulator-off-in-suspend;
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1800000>;
 				};
 			};
 
@@ -920,6 +913,10 @@
 };
 
 &pwm1 {
+	status = "okay";
+};
+
+&rockchip_suspend {
 	status = "okay";
 };
 
