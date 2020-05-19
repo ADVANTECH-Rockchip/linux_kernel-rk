@@ -769,8 +769,7 @@
 
 &spi2 {
 	status = "okay";
-	pinctrl-0 = <&spi2_clk &spi2_tx &spi2_rx &spi2_cs0 &spi2_cs1>;
-	num-cs = <2>;
+	pinctrl-0 = <&spi2_clk &spi2_tx &spi2_rx &spi2_cs0>;
 	max-freq = <48000000>;
 	m25p80@0 {
 		compatible = "w25q32";
