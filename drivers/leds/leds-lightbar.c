@@ -1,0 +1,254 @@
+/*
+* Driver for QSC RGB addressable led lightbar
+* Copyright (C) 2020 Advantech Co., Ltd.
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 as
+* published by the Free Software Foundation.
+*/
+
+#include <linux/module.h>
+#include <linux/delay.h>
+#include <linux/i2c.h>
+#include <linux/spi/spi.h>
+#include <linux/gpio.h>
+#include <linux/of_gpio.h>
+#include <linux/leds.h>
+#include <linux/slab.h>
+#include <linux/platform_device.h>
+#include <linux/fs.h>
+#include <linux/regmap.h>
+#include <linux/workqueue.h>
+
+enum lightbar_model
+{
+    LIGHTBAR_QSC = 0,
+    LIGHTBAR_ADV,
+};
+
+enum led_ctrl_type
+{
+    LED_SPI = 0,
+    LED_MCU,
+};
+
+/* operation mode */
+enum led_mode
+{
+    MODE_DEFAULT = 0,
+    MODE_INDIC,
+    MODE_TORCH,
+    MODE_FLASH
+};
+
+struct lightbar_data
+{
+    struct device *dev;
+    struct spi_device	*spi;
+    enum led_ctrl_type type;
+    struct led_classdev cdev;
+    struct lightbar_platform_data *pdata;
+
+    struct mutex		mutex;
+    struct work_struct	work;
+    spinlock_t		lock;
+    struct gpio_desc *pwen_gpio;
+    int brightness;
+    char			name[sizeof("lightbar-3")];
+    u8 br_flash;
+};
+
+
+struct led_data
+{
+    uint8_t b[24];
+};
+
+/******to avoid compile error*******************************{*/
+struct gpio_desc
+{
+    struct gpio_chip        *chip;
+    unsigned long           flags;
+    /* flag symbols are bit numbers */
+#define FLAG_REQUESTED  0
+#define FLAG_IS_OUT     1
+#define FLAG_EXPORT     2       /* protected by sysfs_lock */
+#define FLAG_SYSFS      3       /* exported via /sys/class/gpio/control */
+#define FLAG_ACTIVE_LOW 6       /* value has active low */
+#define FLAG_OPEN_DRAIN 7       /* Gpio is open drain type */
+#define FLAG_OPEN_SOURCE 8      /* Gpio is open source type */
+#define FLAG_USED_AS_IRQ 9      /* GPIO is connected to an IRQ */
+#define FLAG_IS_HOGGED  11      /* GPIO is hogged */
+
+    /* Connection label */
+    const char              *label;
+    /* Name of the GPIO */
+    const char              *name;
+};
+/* } */
+
+#define LIGHTBAR_ADV_NAME "ADV_RGBLightBar"
+#define LIGHTBAR_QSC_NAME "QSC_RGBLightBar"
+
+
+static char lightbar_name[][32] =
+{
+    [LIGHTBAR_QSC] = LIGHTBAR_QSC_NAME,
+    [LIGHTBAR_ADV] = LIGHTBAR_ADV_NAME,
+
+};
+
+/* lightbar initialize */
+static int lightbar_bar_init(struct device *dev, struct lightbar_data *bar)
+{
+    int ret = 0;
+    /* power */
+    bar->pwen_gpio = devm_gpiod_get_optional(dev, "pwen", GPIOD_OUT_HIGH);
+    if (IS_ERR_OR_NULL(bar->pwen_gpio))
+    {
+        dev_warn(dev, "Could not get named GPIO for power enable!\n");
+        ret =  PTR_ERR(bar->pwen_gpio);
+    }
+    else
+    {
+        printk("* pwen_gpio: %s %s\n",bar->pwen_gpio->label,bar->pwen_gpio->name);
+        gpiod_direction_output(bar->pwen_gpio, 1);
+
+    }
+
+    return ret;
+}
+
+static void lightbar_brightness_set_work(struct work_struct *work)
+{
+    struct lightbar_data *bar = container_of(work, struct lightbar_data, work);
+    int i=0;
+    u8 data[2][192] = {{0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+					    0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+					    0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+					    0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+					    0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+					    0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+					    0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+					    0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0 \
+					   },\
+					   {0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+						0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+						0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,\
+						0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+						0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+						0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,\
+						0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,\
+						0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xFC,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0 \
+						}};
+
+    if (bar->brightness == 0)
+     i = 0;
+    else
+     i = 1;
+     
+    mutex_lock(&bar->mutex);
+    //data = cpu_to_le16((bar->brightness & 0xff));
+    spi_write(bar->spi, (const u8 *)&data[i], sizeof(data[i]));
+    mutex_unlock(&bar->mutex);
+}
+
+static void lightbar_brightness_set(struct led_classdev *cdev,
+                                    enum led_brightness brightness)
+{
+    struct lightbar_data *bar =
+        container_of(cdev, struct lightbar_data, cdev);
+    bar->brightness = brightness;
+    schedule_work(&bar->work);
+}
+
+/* module initialize */
+static int lightbar_probe(struct spi_device *spi)
+{
+    struct lightbar_data *bar;
+    int ret;
+
+    bar = devm_kzalloc(&spi->dev,
+                       sizeof(struct lightbar_data), GFP_KERNEL);
+    if (!bar)
+        return -ENOMEM;
+
+    spi->bits_per_word = 8;
+    spi->max_speed_hz = 6666000;
+    spi->mode = SPI_MODE_1;
+
+    bar->spi = spi;
+    snprintf(bar->name, sizeof(bar->name), "lightbar-%d", 0);
+    spin_lock_init(&bar->lock);
+    INIT_WORK(&bar->work, lightbar_brightness_set_work);
+    mutex_init(&bar->mutex);
+    bar->cdev.name = bar->name;
+    bar->cdev.brightness_set = lightbar_brightness_set;
+    bar->cdev.brightness = 0;
+    bar->dev = &spi->dev;
+
+    ret = led_classdev_register(&spi->dev, &bar->cdev);
+    if (ret < 0)
+        goto err_out;
+
+    spi_set_drvdata(spi, bar);
+
+    ret = lightbar_bar_init(&spi->dev,bar);
+    if ( ret != 0 )
+    {
+        dev_info(&spi->dev, "%s failed to initialize\n", lightbar_name[0]);
+        goto err_out;
+    }
+    else
+        dev_info(&spi->dev, "%s is initialized\n", lightbar_name[0]);
+    return 0;
+
+
+err_out:
+    return ret;
+}
+
+static int lightbar_remove(struct spi_device *spi)
+{
+
+
+   dev_info(&spi->dev, "%s is removed\n", lightbar_name[0]);
+
+    return 0;
+}
+
+static const struct spi_device_id lightbar_id[] =
+{
+    {LIGHTBAR_QSC_NAME, 0},
+    {LIGHTBAR_QSC_NAME, 1},
+    {}
+};
+MODULE_DEVICE_TABLE(spi, lightbar_id);
+
+static const struct of_device_id lightbar_dt_match[] =
+{
+    {.compatible = "qsc,lightbar"},
+    {.compatible = "adv,lightbar"},
+    {},
+};
+MODULE_DEVICE_TABLE(of, lightbar_dt_match);
+
+static struct spi_driver lightbar_driver =
+{
+    .driver = {
+        .name = "Lightbar",
+        .owner = THIS_MODULE,
+        .of_match_table = of_match_ptr(lightbar_dt_match),
+    },
+    .probe = lightbar_probe,
+    .remove = lightbar_remove,
+    .id_table = lightbar_id,
+
+};
+
+module_spi_driver(lightbar_driver);
+
+
+MODULE_DESCRIPTION("Advantech SPI Lightbar driver");
+MODULE_AUTHOR("Ted Lin <ted.lin@advantech.com>");
+MODULE_LICENSE("GPL v2");

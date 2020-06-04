@@ -619,6 +619,15 @@ config LEDS_VERSATILE
 	  This option enabled support for the LEDs on the ARM Versatile
 	  and RealView boards. Say Y to enabled these.
 
+config LEDS_LIGHTBAR
+	bool "LED support for addressable RGB lightbar"
+	depends on LEDS_CLASS=y
+	depends on OF
+	help
+	  This option enabled support for the RGB lightbar on QSC
+	  devices. This will only work with device tree enabled
+	  devices.
+
 comment "LED Triggers"
 source "drivers/leds/trigger/Kconfig"
 
