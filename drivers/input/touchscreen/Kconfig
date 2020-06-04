@@ -1175,6 +1175,9 @@ config TOUCHSCREEN_VTL_CT36X
 config TOUCHSCREEN_GT1X
 	tristate "GT1X touchscreens support"
 
+config TOUCHSCREEN_ILITEK
+	tristate "ILITEK ILI231X/ILI251X/Lego series touchscreens support"
+	
 config TOUCHSCREEN_HY46XX_I2C
         tristate "Hycon 46XX i2c touchscreen"
         depends on I2C && OF
