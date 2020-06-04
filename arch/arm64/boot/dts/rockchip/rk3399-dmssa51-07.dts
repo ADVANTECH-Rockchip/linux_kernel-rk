@@ -44,7 +44,7 @@
 #include "rk3399-dmssa51.dtsi"
 
 / {
-	model = "Rockchip RK3399 Board Box (DS100)";
+	model = "Rockchip RK3399";
 	compatible = "rockchip-ds100","rockchip,rk3399-box";
 
 	fiq_debugger: fiq-debugger {
@@ -58,21 +58,12 @@
 		interrupts = <GIC_SPI 150 IRQ_TYPE_LEVEL_HIGH 0>;
 	};
 
-	vcc5v0_otg: vcc5v0-otg-regulator {
-		compatible = "regulator-fixed";
-		enable-active-high;
-		gpio = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&host_vbus_drv>;
-		regulator-name = "vcc5v0_otg";
-		//regulator-always-on;
-	};
-
 	buzzer: buzzer {
 		status = "okay";
 		compatible = "pwm-beeper";
 		pwms = <&pwm1 0 5000000 0>; //200 Hz
 	};
+
 
 
 	backlight: backlight {
@@ -341,17 +332,17 @@
 		disp_timings: display-timings {
 			native-mode = <&timing0>;
 			timing0: timing0 {
-			   clock-frequency = <44400000>;
+			   clock-frequency = <67802400>;
 			   hactive = <800>;
 			   vactive = <1280>;
 			   hsync-len = <20>;
 			   hback-porch = <20>;
-			   hfront-porch = <32>;
+			   hfront-porch = <20>;
 			   vsync-len = <4>;
-			   vback-porch = <6>;
-			   vfront-porch = <8>;
-			   hsync-active = <33>;
-			   vsync-active = <34>;
+			   vback-porch = <10>;
+			   vfront-porch = <20>;
+			   hsync-active = <0>;
+			   vsync-active = <0>;
 			   de-active = <0>;
 			   pixelclk-active = <0>;
 			};
@@ -383,32 +374,15 @@
 &pwm1 {
 	status = "okay";
 };
-
-&u2phy0 {
- 	status = "okay";
-	
- 	u2phy0_otg: otg-port {
- 		vbus-supply = <&vcc5v0_otg>;
- 		status = "okay";
- 	};
-	u2phy0_host: host-port {
-		phy-supply = <&vcc5v0_host>;
-		status = "disabled";
-	}; 	
-};
-
-&u2phy1 {
-	status = "disabled";
-};
-	 
+ 
 &usbdrd3_0 {
-	extcon = <&u2phy0>;
+	extcon = <&fusb0>;
 	status = "okay";
 };
 
 &tcphy0 {
 	extcon = <&fusb0>;
-	status = "disabled";
+	status = "okay";
 	resets = <&cru SRST_UPHY0>,
 			 <&cru SRST_UPHY0_PIPE_L00>,
 			 <&cru SRST_P_UPHY0_TCPHY>,
@@ -417,25 +391,12 @@
 };
 
 &tcphy1 {
-	status = "disabled";
+	status = "okay";
 	resets = <&cru SRST_UPHY1>,
 			 <&cru SRST_UPHY1_PIPE_L00>,
 			 <&cru SRST_P_UPHY1_TCPHY>,
 			 <&cru SRST_A_USB3_OTG1>;
 	reset-names = "uphy", "uphy-pipe", "uphy-tcphy", "usb3-otg";
-};
-
-&usbdrd3_0 {
-	status = "okay";
-	extcon = <&u2phy0>;
-};
-
-&usbdrd_dwc3_0 {
-	dr_mode = "otg";
-	maximum-speed = "high-speed";
-	phys = <&u2phy0_otg>;
-	phy-names = "usb2-phy";
-	status = "okay";
 };
 
 &usbdrd3_1 {
@@ -555,11 +516,16 @@
 		status = "disabled";
 	};
 	
+	ltrx1082@3b {
+		compatible = "lite_on,ltrx1082";
+		reg = <0x3b>;
+		status = "okay";
+	};
 };
 
 
 &i2c4 {
-	status = "disabled";
+	status = "okay";
 	fusb0: fusb30x@22 {
 		compatible = "fairchild,fusb302";
 		reg = <0x22>;
@@ -568,27 +534,47 @@
 		vbus-5v-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
 		int-n-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
 		fusb302,role = "ROLE_MODE_DRP";
-		status = "disabled";
+		status = "okay";
 	};
 };
 
 &i2c5 {
 	status = "okay";
 	clock-frequency = <200000>;
-	hy46xx_i2c@38 {
-		compatible = "hycon,hy46xx_ts";
-		reg = <0x38>;
+	
+	ili2511_i2c@41 {
+		compatible = "tchip,ilitek";
+		reg = <0x41>;
 		//interrupt-parent = <&gpio3>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&ctp_gpio>;
 		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
-		int-gpios = <&gpio3 14 GPIO_ACTIVE_LOW>;
-		reset-gpios = <&gpio3 13 GPIO_ACTIVE_LOW>;
-		pwen-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
+		ilitek,irq-gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
+		ilitek,reset-gpio = <&gpio3 13 GPIO_ACTIVE_LOW>;
+		ilitek,power-gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>;
+		ilitek,name = "ilitek_i2c";
 		status = "okay";
 	};
 };
 
+&spi0 {
+	status = "okay";
+
+    max-freq = <48000000>;  
+    lightbar@0 {
+              //compatible = "qsc,lightbar";   //for LED class driver
+              compatible = "rockchip,spidev";  //for spidev
+              pinctrl-names = "default";
+              pinctrl-0 = <&led_pwr>;
+              // TODO: can run faster once verified.
+              // TODO: add rx-sample-delay-ns.
+              spi-max-frequency = <10000000>;
+              reg = <0>;
+              //spi-lsb-first;
+              pwen-gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>; //GPIO0_A4
+      };
+
+};
 
 &spi2 {
 	status = "okay";
@@ -605,10 +591,6 @@
               //spi-lsb-first;
       };
 
-};
-
-&vcc5v0_host {
-	status = "disabled";
 };
 
 &gmac {
@@ -629,13 +611,6 @@
 		};
 	};
 
-	u2phy0 {
-		otg_vbus: otg-vbus {
-			rockchip,pins =
-				<0 6 RK_FUNC_GPIO &pcfg_pull_none>; //GPIO0_A6
-		};
-	};
-
 	hy46xx_i2c {
 		ctp_gpio: ctp-gpio {
 			rockchip,pins =
@@ -653,6 +628,15 @@
 			
 		};
 	};
+	
+	spi0 {
+		led_pwr:led_pwr {
+			rockchip,pins=
+                    <0 4  RK_FUNC_GPIO &pcfg_pull_none>; // GPIO2_B0
+		};
+		
+	};
+	
 	spi2 {
 		spi2_int:spi2-int {
 			rockchip,pins=
