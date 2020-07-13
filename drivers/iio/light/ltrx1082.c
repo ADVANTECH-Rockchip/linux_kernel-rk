@@ -253,13 +253,51 @@ uint16_t ltrx1082_ps_read(struct i2c_client *client)
 
 uint16_t ltrx1082_als_read(struct i2c_client *client)
 {
-    uint8_t alsval_lo, alsval_hi;
+#if 0 /*General usecase*/
+    uint8_t alsval_lo, alsval_hi,tmp;
     uint16_t alsdata;
 
     alsval_lo = i2c_read_reg(client, LTRX1082_ALS_DATA_0);
     alsval_hi = i2c_read_reg(client, LTRX1082_ALS_DATA_1);
 
     alsdata = (alsval_hi << 8) + alsval_lo;
+#else
+
+    uint8_t ch1_h,ch1_m,ch1_l,ch2_h,ch2_m,ch2_l;
+    uint16_t alsdata;
+    uint32_t ch0data,ch1data;
+    int ratio;
+    int lux;
+    int WINFAC = 1, gain = 1;
+
+    ch1_l =  i2c_read_reg(client, LTRX1082_ALS_DATA_CH1_0);
+    ch1_m =  i2c_read_reg(client, LTRX1082_ALS_DATA_CH1_1);
+    ch1_h =  i2c_read_reg(client, LTRX1082_ALS_DATA_CH1_2);
+    ch2_l =  i2c_read_reg(client, LTRX1082_ALS_DATA_CH2_0);
+    ch2_m =  i2c_read_reg(client, LTRX1082_ALS_DATA_CH2_1);
+    ch2_h =  i2c_read_reg(client, LTRX1082_ALS_DATA_CH2_2);
+    ch0data = (0 | (ch1_h <<12) | (ch1_m <<4) | (ch1_l >> 4) );
+    ch1data = (0 | (ch2_h <<12) | (ch2_m <<4) | (ch2_l >> 4) );
+
+    /* avoid divided by 0 */
+    if ((ch0data == 0) && (ch1data == 0))
+        return 0;
+
+    ratio = ch1data * 100 / (ch0data + ch1data);
+    if (ratio < 45) {
+        lux = (17743 * ch0data - 6684 * ch1data) * WINFAC / gain / 10000;
+    }
+    else if ((ratio >= 45) && (ratio < 64)) {
+        lux = (42785 * ch0data - 62333 * ch1data) * WINFAC / gain / 10000;
+    }
+    else if ((ratio >= 64) && (ratio < 85)) {
+        lux = (13629 * ch0data - 13800 * ch1data) * WINFAC / gain / 10000;
+    }else {
+        lux = 0;
+    }
+    alsdata = (uint16_t) lux;
+#endif
+	
     LTR_DEBUG("%s: alsdata: %d\n",__func__, alsdata);
     return alsdata;
 }
