@@ -743,14 +743,14 @@ ifeq ($(CONFIG_USB_HCI), y)
 ifeq ($(CONFIG_BT_COEXIST), n)
 MODULE_NAME = 8812bu
 else
-MODULE_NAME = 88x2bu
+MODULE_NAME = 8822bu
 endif
 endif
 ifeq ($(CONFIG_PCI_HCI), y)
-MODULE_NAME = 88x2be
+MODULE_NAME = 8822be
 endif
 ifeq ($(CONFIG_SDIO_HCI), y)
-MODULE_NAME = 88x2bs
+MODULE_NAME = 8822bs
 endif
 
 endif
