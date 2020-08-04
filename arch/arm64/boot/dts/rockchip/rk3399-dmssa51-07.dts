@@ -544,15 +544,17 @@
 	
 	ili2511_i2c@41 {
 		compatible = "tchip,ilitek";
+		//compatible = "ilitek,ili251x";
 		reg = <0x41>;
 		//interrupt-parent = <&gpio3>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&ctp_gpio>;
-		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
+		interrupts = <174 IRQ_TYPE_EDGE_FALLING>;
 		ilitek,irq-gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
 		ilitek,reset-gpio = <&gpio3 13 GPIO_ACTIVE_LOW>;
 		ilitek,power-gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>;
 		ilitek,name = "ilitek_i2c";
+		max-fingers = <10>;
 		status = "okay";
 	};
 };
@@ -611,7 +613,7 @@
 		};
 	};
 
-	hy46xx_i2c {
+	ili2511_i2c {
 		ctp_gpio: ctp-gpio {
 			rockchip,pins =
 				<3 13  RK_FUNC_GPIO &pcfg_pull_none>, // GPIO3_B5
@@ -663,4 +665,5 @@
 				<3 1 RK_FUNC_GPIO &pcfg_output_high>; /* GPIO3_A1 - MSR_EN */
 		};
 	};
+	
 };
