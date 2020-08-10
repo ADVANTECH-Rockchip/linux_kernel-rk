@@ -44,7 +44,7 @@
 #include "rk3399-dmssa51.dtsi"
 
 / {
-	model = "Rockchip RK3399 Board Box (DS100)";
+	model = "Rockchip RK3399 Board";
 	compatible = "rockchip-ds100","rockchip,rk3399-box";
 
 	fiq_debugger: fiq-debugger {
@@ -155,7 +155,7 @@
 		pinctrl-0 = <&dsi_gpio>;
 		//power-supply = <&vcc_lcd>;
 		enable-gpios = <&gpio3 15 GPIO_ACTIVE_HIGH>; //GPIO3_B7
-		reset-gpios = <&gpio3 12 GPIO_ACTIVE_LOW>; //GPIO3_B4
+		reset-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>; //GPIO1_A0
 		dsi,flags = <(MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST)>;
 		dsi,format = <MIPI_DSI_FMT_RGB888>;
 		//bus-format = <MEDIA_BUS_FMT_RGB666_1X18>;
@@ -757,7 +757,7 @@
 	dsi {
 		dsi_gpio:dsi-gpio{
 			rockchip,pins=
-                    <3 12  RK_FUNC_GPIO &pcfg_pull_none>, // GPIO3_B4
+                    <1 0  RK_FUNC_GPIO &pcfg_pull_none>, // GPIO1_A0
                     <3 15  RK_FUNC_GPIO &pcfg_pull_up>; // GPIO3_B7
 			
 		};
