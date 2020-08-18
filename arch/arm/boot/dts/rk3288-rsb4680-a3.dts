@@ -347,7 +347,7 @@
 		system-reset-gpio = <&gpio0 RK_PB2 GPIO_ACTIVE_LOW>;
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pcie_pwren &pcie_reset>;
+		pinctrl-0 = <&pcie_pwren &pcie_reset &adv_gpios>;
 	};
 };
 
@@ -1216,6 +1216,19 @@
 
 		sdio0_int: sdio0-int {
 			rockchip,pins = <4 30 RK_FUNC_1 &pcfg_pull_up_12ma>;
+		};
+	};
+
+	gpios {
+		adv_gpios: adv-gpios {
+			rockchip,pins = <7 3 RK_FUNC_GPIO &pcfg_pull_none_12ma>,
+				<7 4 RK_FUNC_GPIO &pcfg_pull_none_12ma>,
+				<7 5 RK_FUNC_GPIO &pcfg_pull_none_12ma>,
+				<7 21 RK_FUNC_GPIO &pcfg_pull_none_12ma>,
+				<8 0 RK_FUNC_GPIO &pcfg_pull_none_12ma>,
+				<8 1 RK_FUNC_GPIO &pcfg_pull_none_12ma>,
+				<8 2 RK_FUNC_GPIO &pcfg_pull_none_12ma>,
+				<8 3 RK_FUNC_GPIO &pcfg_pull_none_12ma>;
 		};
 	};
 };
