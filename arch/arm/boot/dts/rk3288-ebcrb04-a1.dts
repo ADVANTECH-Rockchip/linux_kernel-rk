@@ -401,7 +401,7 @@
 	status = "okay";
 	rockchip,phy-table = 
 	             <74250000  0x8009 0x0004 0x0272>,
-	             <165000000 0x802b 0x0004 0x0209>,
+	             <165000000 0x8029 0x0004 0x02ef>,
 	             <297000000 0x803d 0x0005 0x0108>,
 	             <594000000 0x8039 0x0000 0x019d>;
 };
@@ -1013,6 +1013,9 @@
 	};
 
 	wireless-bluetooth {
+		uart0_rts_gpio: uart0-rts-gpio {
+			rockchip,pins = <4 19 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
 		bt_pwr_h: bt-pwr-h {
 			rockchip,pins =<5 17 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
