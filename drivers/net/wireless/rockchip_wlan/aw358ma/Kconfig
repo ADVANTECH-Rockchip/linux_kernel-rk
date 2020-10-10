@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0
+config AW358MA
+	tristate "AW358MA WiFi"
+	---help---
+	  Help message of AW358MA
