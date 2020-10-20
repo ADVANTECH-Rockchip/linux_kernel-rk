@@ -229,15 +229,15 @@
 		backlight = <&backlight>;
 		panel_type = <SCREEN_LVDS>;
 		
-		bpc = <8>;
-		bus-format = <MEDIA_BUS_FMT_RGB888_1X24>;
+		bpc = <6>;
+		bus-format = <MEDIA_BUS_FMT_RGB666_1X7X3_SPWG>;
 		prepare-delay-ms = <120>;
 		enable-delay-ms = <120>;
 		unprepare-delay-ms = <120>;
 		disable-delay-ms = <120>;
 
 		rockchip,data-mapping = "vesa";
-		rockchip,data-width = <24>;
+		rockchip,data-width = <18>;
 		rockchip,output = "lvds";
 	
 		status = "disabled";

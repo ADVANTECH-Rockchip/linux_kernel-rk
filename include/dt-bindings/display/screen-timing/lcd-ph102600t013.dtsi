@@ -6,12 +6,12 @@
 	disp_timings: display-timings {
 		lvds_ph102600t013: lvds-ph102600t013 {
 			rockchip,data-mapping = "vesa";
-			rockchip,data-width = <24>;
+			rockchip,data-width = <18>;
 			rockchip,output = "lvds";
 
 			screen-type = <SCREEN_LVDS>;
-			lvds-format = <LVDS_8BIT_1>;
-			out-face    = <OUT_P888>;
+			lvds-format = <LVDS_6BIT>;
+			out-face    = <OUT_P666>;
 			color-mode = <COLOR_RGB>;
 			
 			clock-frequency = <51200000>;
