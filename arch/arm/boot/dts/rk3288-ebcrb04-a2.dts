@@ -116,7 +116,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&bl_en>;
 		rockchip,pwm_id= <1>;
-		pwms = <&pwm1 0 25000 0>; 
+		pwms = <&pwm1 0 250000 0>;
 	};
 
 	rk-keypad {
