@@ -51,6 +51,7 @@
 #include <linux/net_tstamp.h>
 #include "stmmac_ptp.h"
 #include "stmmac.h"
+#include "dwmac-rk-tool.h"
 #include <linux/reset.h>
 #include <linux/of_mdio.h>
 #ifdef CONFIG_ARCH_ADVANTECH
@@ -1867,7 +1868,17 @@ static int stmmac_open(struct net_device *dev)
 
 	napi_enable(&priv->napi);
 	netif_start_queue(dev);
+#ifdef CONFIG_ARCH_ADVANTECH
 	priv->first_init = 1;
+#endif
+
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+	if (!priv->delayline_scanned) {
+		if (dwmac_rk_get_rgmii_delayline_from_vendor(priv))
+			schedule_delayed_work(&priv->scan_dwork, msecs_to_jiffies(6000));
+		priv->delayline_scanned = true;
+	}
+#endif
 
 	return 0;
 
@@ -1966,10 +1977,12 @@ static netdev_tx_t stmmac_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct dma_desc *desc, *first;
 	unsigned int enh_desc;
 
+#ifdef CONFIG_ARCH_ADVANTECH
 	if(priv->first_init && (priv->phydev->state != PHY_RUNNING))
 		return NETDEV_TX_OK;
 	else
 		priv->first_init = 0;
+#endif
 
 	if (unlikely(stmmac_tx_avail(priv) < nfrags + 1)) {
 		if (!netif_queue_stopped(dev)) {
@@ -3016,7 +3029,16 @@ static const struct file_operations net_testmode_fops = {
 	.owner = THIS_MODULE,
 	.write = net_testmode_write,
 };
+#endif
 
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+static void stmmac_scan_delayline_dwork(struct work_struct *work)
+{
+	struct stmmac_priv *priv = container_of(work, struct stmmac_priv,
+						scan_dwork.work);
+
+	dwmac_rk_search_rgmii_delayline(priv);
+};
 #endif
 
 /**
@@ -3209,6 +3231,18 @@ int stmmac_dvr_probe(struct device *device,
 	proc_create("net_testmode", 0777, NULL, &net_testmode_fops);
 #endif
 
+	ret = dwmac_rk_create_loopback_sysfs(device);
+	if (ret) {
+		netdev_err(priv->dev, "%s: ERROR %i create loopback sysfs\n",
+			   __func__, ret);
+		unregister_netdev(ndev);
+		goto error_netdev_register;
+	}
+
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+	INIT_DELAYED_WORK(&priv->scan_dwork, stmmac_scan_delayline_dwork);
+#endif
+
 	return ret;
 
 error_netdev_register:
@@ -3256,6 +3290,7 @@ int stmmac_dvr_remove(struct device *dev)
 	    priv->pcs != STMMAC_PCS_RTBI)
 		stmmac_mdio_unregister(ndev);
 	mutex_destroy(&priv->lock);
+	dwmac_rk_remove_loopback_sysfs(dev);
 	free_netdev(ndev);
 
 	return 0;
