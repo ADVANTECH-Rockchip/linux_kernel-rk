@@ -61,6 +61,7 @@
 #include <dt-bindings/display/screen-timing/lcd-g215hvn01.dtsi>
 #include <dt-bindings/display/screen-timing/lcd-n101icgl21.dtsi>
 #include <dt-bindings/display/screen-timing/lcd-vl-fs-7dh.dtsi>
+#include <dt-bindings/display/screen-timing/lcd-M128LV5005.dtsi>
 
 / {
 	model = "ROM-5780 AKS0000000000 V10000";
@@ -187,7 +188,7 @@
 			240 241 242 243 244 245 246 247
 			248 249 250 251 252 253 254 255>;
 		default-brightness-level = <200>;
-		default-enable = <0>;
+		default-enable = <1>;
 	};
 
 	// Backlight dsi2lvds
@@ -234,7 +235,7 @@
 			240 241 242 243 244 245 246 247
 			248 249 250 251 252 253 254 255>;
 		default-brightness-level = <200>;
-		default-enable = <0>;
+		default-enable = <1>;
 	};
 
 	//edp vcc
@@ -455,6 +456,7 @@
 		regulator-min-microvolt = <3000000>;
 		regulator-max-microvolt = <3000000>;
 		regulator-boot-on;
+		status = "disabled";
 	};
 
 	vcc_phy: vcc-phy-regulator {
@@ -666,9 +668,10 @@
 	assigned-clock-parents = <&clkin_gmac>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&rgmii_16ma_pins &rgmii_phy_reset>;
-	enable_phy_delay = <1>;
-	tx_delay = <0>;
-	rx_delay = <0>;
+	enable_phy_delay = <0>;
+	tx_delay = <0x1c>;//from dvt board
+	//tx_delay = <0x2c>;//from pvt board
+	rx_delay = <0x1e>;
 	status = "okay";
 };
 
@@ -967,6 +970,7 @@
 		reg = <0x29>;
 		wdt-ping = <&gpio0 9 GPIO_ACTIVE_HIGH>;
 		wdt-en = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+		status = "disabled";
 	};
 };
 
@@ -978,19 +982,6 @@
 		reg = <0x73>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-
-		i2c@0{
-			#address-cells = <1>;
-			#size-cells = <0>;
-			reg = <0>;
-
-			battery: bq40z50@0b {
-				compatible = "ti,bq40z50";
-				reg = <0x0b>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&battery_pins>;
-			};
-		};
 
 		i2c@1{
 			#address-cells = <1>;
@@ -1060,7 +1051,7 @@
 };
 
 &watchdog {
-    status = "disabled";
+    status = "okay";
 };
 
 &i2s0 {
@@ -1192,7 +1183,7 @@
 	vqmmc-supply = <&vccio_sd>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc_cd &sdmmc_bus4>;
-	status = "okay";
+	status = "disabled";
 };
 
 &spi2 {
@@ -1908,20 +1899,6 @@
 		};
 	};
 
-	battery {
-		battery_pins: battery-pins {
-			rockchip,pins = 
-				/* SMB_ALERT_1V8 */
-				<4 26 RK_FUNC_1 &pcfg_pull_none>,
-				/* BATLOW */
-				//<3 14 RK_FUNC_1 &pcfg_pull_none>,
-				/* CHARGING */
-				<2 24 RK_FUNC_GPIO &pcfg_pull_none>,
-				/* CHARGER_PRSNT */
-				<2 25 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
 	gmac {
 		rgmii_16ma_pins: rgmii-16ma-pins {
 			rockchip,pins =
@@ -1955,40 +1932,6 @@
 				<3 1 RK_FUNC_1 &pcfg_pull_none_13ma>,
 				/* mac_txd2 */
 				<3 0 RK_FUNC_1 &pcfg_pull_none_13ma>;
-		};
-
-		rgmii_26ma_pins: rgmii-26ma-pins {
-			rockchip,pins =
-				/* mac_txclk */
-				<3 17 RK_FUNC_1 &pcfg_pull_none_26ma>,
-				/* mac_rxclk */
-				<3 14 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_mdio */
-				<3 13 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_txen */
-				<3 12 RK_FUNC_1 &pcfg_pull_none_26ma>,
-				/* mac_clk */
-				<3 11 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_rxdv */
-				<3 9 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_mdc */
-				<3 8 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_rxd1 */
-				<3 7 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_rxd0 */
-				<3 6 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_txd1 */
-				<3 5 RK_FUNC_1 &pcfg_pull_none_26ma>,
-				/* mac_txd0 */
-				<3 4 RK_FUNC_1 &pcfg_pull_none_26ma>,
-				/* mac_rxd3 */
-				<3 3 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_rxd2 */
-				<3 2 RK_FUNC_1 &pcfg_pull_none>,
-				/* mac_txd3 */
-				<3 1 RK_FUNC_1 &pcfg_pull_none_26ma>,
-				/* mac_txd2 */
-				<3 0 RK_FUNC_1 &pcfg_pull_none_26ma>;
 		};
 	};
 };
