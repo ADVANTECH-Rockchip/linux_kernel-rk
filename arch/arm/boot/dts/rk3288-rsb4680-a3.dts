@@ -67,8 +67,18 @@
 		edp = &edp;
 		edp_phy = &edp_phy;
 		lvds = &lvds;
+
+		hdmi_in_vopb = &hdmi_in_vopb;
+		hdmi_in_vopl = &hdmi_in_vopl;
+		edp_in_vopb = &edp_in_vopb;
+		edp_in_vopl = &edp_in_vopl;
+		edp_panel = &edp_panel;
 		lvds_in_vopl = &lvds_in_vopl;
 		lvds_in_vopb = &lvds_in_vopb;
+		lvds_panel = &lvds_panel;
+		lvds_backlight = &backlight;
+
+		debug_console = &fiq_debugger;
 	};
 
 	chosen {
@@ -81,7 +91,7 @@
 		nvmem-cell-names = "id";
 	};
 
-	fiq-debugger {
+	fiq_debugger: fiq-debugger {
 		status = "okay";
 	};
 	
@@ -233,7 +243,7 @@
 			"Headphone Jack", "HPOR";
 	};
 
-	edp_panel {
+	edp_panel:edp_panel {
 		compatible = "simple-panel";
 		status = "okay";
 		panel_type = <SCREEN_EDP>;
@@ -246,7 +256,7 @@
 		};
 	};
 
-	lvds_panel
+	lvds_panel:lvds_panel
 	{
 		compatible = "simple-panel";
 		power-supply = <&vdd_lvds>;
