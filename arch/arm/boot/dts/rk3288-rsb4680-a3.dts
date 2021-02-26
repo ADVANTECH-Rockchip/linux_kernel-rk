@@ -236,11 +236,15 @@
 			"Microphone", "Microphone Jack",
 			"Headphone", "Headphone Jack";
 		rockchip,routing =
-			"MIC1", "Microphone Jack",
-			"MIC2", "Microphone Jack",
-			"Microphone Jack", "micbias1",
-			"Headphone Jack", "HPOL",
-			"Headphone Jack", "HPOR";
+			"IN1P", "Microphone Jack",
+			"IN1N", "Microphone Jack",
+			"Microphone Jack", "MICBIAS1",
+			"IN3P", "Microphone Jack",
+			"IN3N", "Microphone Jack",
+			"Microphone Jack", "MICBIAS2",
+			"Headphone Jack", "SPO",
+			"Headphone Jack", "LOUTL",
+			"Headphone Jack", "LOUTR";
 	};
 
 	edp_panel:edp_panel {
