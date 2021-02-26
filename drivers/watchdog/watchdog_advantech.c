@@ -9,7 +9,6 @@
 #include <linux/moduleparam.h>
 #include <linux/platform_device.h>
 #include <linux/watchdog.h>
-#include <linux/clk.h>
 #include <linux/fs.h>
 #include <linux/io.h>
 #include <linux/uaccess.h>
@@ -21,19 +20,6 @@
 #include <linux/slab.h>
 #include <linux/delay.h>
 #include <linux/of_gpio.h>
-
-#define ADV_WDT_WCR		0x00		/* Control Register */
-#define ADV_WDT_WCR_WT		(0xFF << 8)	/* -> Watchdog Timeout Field */
-#define ADV_WDT_WCR_WRE	(1 << 3)	/* -> WDOG Reset Enable */
-#define ADV_WDT_WCR_WDE	(1 << 2)	/* -> Watchdog Enable */
-#define ADV_WDT_WCR_WDZST	(1 << 0)	/* -> Watchdog timer Suspend */
-
-#define ADV_WDT_WSR		0x02		/* Service Register */
-#define ADV_WDT_SEQ1		0x5555		/* -> service sequence 1 */
-#define ADV_WDT_SEQ2		0xAAAA		/* -> service sequence 2 */
-
-#define ADV_WDT_WRSR		0x04		/* Reset Status Register */
-#define ADV_WDT_WRSR_TOUT	(1 << 1)	/* -> Reset due to Timeout */
 
 #define ADV_WDT_MAX_TIME	6527		/* in seconds */
 #define ADV_WDT_DEFAULT_TIME	60		/* in seconds */
@@ -54,10 +40,9 @@
 #define REG_WDT_VERSION 			0x27
 #define REG_WDT_POWER_BTN_MODE 		0x28
 
-struct i2c_client *adv_client;
+static struct i2c_client *adv_client;
 
 static struct {
-	struct clk *clk;
 	unsigned int timeout;
 	unsigned int remain_time;
 	unsigned long status;
@@ -85,7 +70,7 @@ module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds (default="
 				__MODULE_STRING(ADV_WDT_DEFAULT_TIME) ")");
 
-struct watchdog_info adv_wdt_info = {
+static struct watchdog_info adv_wdt_info = {
 	.identity = "Advantech watchdog",
 	.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
 	.firmware_version = 0,
@@ -141,7 +126,7 @@ static int adv_wdt_i2c_read_reg(struct i2c_client *client, u8 reg, void *buf, si
 	return 0;
 }
 
-int adv_wdt_i2c_set_timeout(struct i2c_client *client, unsigned int val)
+static int adv_wdt_i2c_set_timeout(struct i2c_client *client, unsigned int val)
 {
 	int ret = 0;
 	val = WDOG_SEC_TO_COUNT(val) & 0x0000FFFF;
@@ -151,7 +136,7 @@ int adv_wdt_i2c_set_timeout(struct i2c_client *client, unsigned int val)
 	return 0;
 }
 
-int adv_wdt_i2c_read_timeout(struct i2c_client *client, unsigned int *val)
+static int adv_wdt_i2c_read_timeout(struct i2c_client *client, unsigned int *val)
 {
 	int ret = 0;
 	
@@ -161,7 +146,7 @@ int adv_wdt_i2c_read_timeout(struct i2c_client *client, unsigned int *val)
 	return 0;
 }
 
-int adv_wdt_i2c_read_remain_time(struct i2c_client *client, unsigned int *val)
+static int adv_wdt_i2c_read_remain_time(struct i2c_client *client, unsigned int *val)
 {
 	int ret = 0;
 	
@@ -171,7 +156,7 @@ int adv_wdt_i2c_read_remain_time(struct i2c_client *client, unsigned int *val)
 	return 0;
 }
 
-int adv_wdt_i2c_read_version(struct i2c_client *client, unsigned int *val)
+static int adv_wdt_i2c_read_version(struct i2c_client *client, unsigned int *val)
 {
 	int ret = 0;
 	
@@ -183,10 +168,8 @@ int adv_wdt_i2c_read_version(struct i2c_client *client, unsigned int *val)
 
 static inline void adv_wdt_ping(void)
 {
-	msleep(10);
 	adv_wdt.wdt_ping_status= !adv_wdt.wdt_ping_status;
 	gpio_set_value(adv_wdt.gpio_wdt_ping, adv_wdt.wdt_ping_status);
-	msleep(10);
 }
 
 static void adv_wdt_start(void)
@@ -363,6 +346,8 @@ static int adv_wdt_i2c_probe(struct i2c_client *client, const struct i2c_device_
 		return ret;
 	}
 	adv_wdt.wdt_ping_status=flags;
+	gpio_direction_output(adv_wdt.gpio_wdt_ping, !flags);
+	msleep(10);
 	gpio_direction_output(adv_wdt.gpio_wdt_ping, flags);
 
 	adv_wdt.timeout = clamp_t(unsigned, timeout, 1, ADV_WDT_MAX_TIME);
@@ -388,10 +373,6 @@ static int adv_wdt_i2c_probe(struct i2c_client *client, const struct i2c_device_
 		goto fail;
 	}
 
-	dev_info(&client->dev,
-						"Advantech Watchdog Timer enabled. timeout=%ds (nowayout=%d), Ver.%d\n",
-						adv_wdt.timeout, nowayout, adv_wdt_info.firmware_version);
-
 	adv_wdt_miscdev.parent = &client->dev;
 	ret = misc_register(&adv_wdt_miscdev);
 	if (ret)
@@ -400,6 +381,10 @@ static int adv_wdt_i2c_probe(struct i2c_client *client, const struct i2c_device_
 	     WATCHDOG_MINOR, ret);
 		goto fail;
 	}
+
+	dev_info(&client->dev,
+						"Advantech MSP430 Watchdog Timer enabled. timeout=%ds (nowayout=%d), Ver.%d\n",
+						adv_wdt.timeout, nowayout, adv_wdt_info.firmware_version);
 
 	return 0;
 
