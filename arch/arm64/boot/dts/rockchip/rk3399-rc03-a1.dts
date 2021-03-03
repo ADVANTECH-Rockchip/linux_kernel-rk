@@ -502,7 +502,6 @@
 
 	use-dts-screen = <1>;
 	prmry-screen = <&hdmi_default>;
-	extend-screen = <&lvds_g070vw01>;
 };
 
 // edp
