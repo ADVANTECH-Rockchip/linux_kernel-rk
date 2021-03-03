@@ -52,6 +52,9 @@
 //hdmi/dp dummy panel
 #include <dt-bindings/display/screen-timing/lcd-adv-dummy.dtsi>
 
+// edp panel
+#include <dt-bindings/display/screen-timing/lcd-edp-general.dtsi>
+
 // mipi-dsi to lvds panel
 #include <dt-bindings/display/screen-timing/lcd-g070vw01.dtsi>
 
@@ -498,10 +501,11 @@
 };
 
 &disp_timings {
-	native-mode = <&lvds_g070vw01>;
+	native-mode = <&edp_1366x768>;
 
-	use-dts-screen = <1>;
+	use-dts-screen = <0>;
 	prmry-screen = <&hdmi_default>;
+	extend-screen = <&edp_1366x768>;
 };
 
 // edp
@@ -1893,7 +1897,7 @@
 							<2 6	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 28	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 4	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 18	RK_FUNC_GPIO &pcfg_pull_down>,
+							/*<4 18	RK_FUNC_GPIO &pcfg_pull_down>,*/
 							<4 30	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 5	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 22	RK_FUNC_GPIO &pcfg_pull_down>,
