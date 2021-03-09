@@ -196,8 +196,13 @@ static void msp430_wdt_stop(void)
 
 static int msp430_wdt_open(struct inode *inode, struct file *file)
 {
+	int ret = 0;
+	char val = 'a';
 	if (test_and_set_bit(ADV_WDT_STATUS_OPEN, &msp430_wdt.status))
 		return -EBUSY;
+
+	ret = msp430_wdt_i2c_write_reg(msp430_client, REG_WDT_HANDSHAKE, &val, sizeof(val));
+	if (!ret)
 	msp430_wdt_start();
 	return nonseekable_open(inode, file);
 }
