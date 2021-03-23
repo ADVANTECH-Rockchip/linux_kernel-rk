@@ -130,7 +130,9 @@
 		compatible = "misc-adv-gpio";
 		status = "disabled";
 		pinctrl-names = "default";
-		pinctrl-0 = <&system_rst_h &m2_pwr_h>;
+		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h>;
+		minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
+		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_LOW>;
 		system-reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
 		m2-pwr-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
 		timing-interval = <10>;
@@ -1794,6 +1796,14 @@
 	misc {
 		pcie_reset_l: pcie-reset-l {
 			rockchip,pins = <2 28 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		minipcie_pwr_h: minipcie-pwr-h {
+			rockchip,pins = <2 9 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+
+		minipcie_reset_h: minipcie-reset-h {
+			rockchip,pins = <2 25 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 
 		m2_pwr_h: m2-pwr-h {
