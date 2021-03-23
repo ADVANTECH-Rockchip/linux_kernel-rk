@@ -384,20 +384,6 @@
 		status = "okay";
 	};
 
-	wireless-bluetooth {
-		compatible = "bluetooth-platdata";
-		clocks = <&rk808 1>;
-		clock-names = "ext_clock";
-		/* wifi-bt-power-toggle; */
-		/*uart_rts_gpios = <&gpio2 19 GPIO_ACTIVE_LOW>;*/
-		/*pinctrl-names = "default", "rts_gpio";*/
-		/*pinctrl-0 = <&uart0_rts>;*/
-		/*pinctrl-1 = <&uart0_gpios>;*/
-		/* BT,power_gpio  = <&gpio3 19 GPIO_ACTIVE_HIGH>; */
-		BT,reset_gpio    = <&pca953x 0 GPIO_ACTIVE_HIGH>;
-		status = "okay";
-	};
-
 	vcc3v3_sys: vcc3v3-sys {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc3v3_sys";
