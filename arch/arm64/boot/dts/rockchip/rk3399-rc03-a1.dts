@@ -327,10 +327,10 @@
 		status = "disabled";
 	};
 
-	rt5640-sound {
+	rt5660-sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,format = "i2s";
-		simple-audio-card,name = "rockchip,rt5640-codec";
+		simple-audio-card,name = "rockchip,rt5660-codec";
 		simple-audio-card,mclk-fs = <256>;
 		status = "okay";
 
@@ -339,15 +339,20 @@
 				"Headphone", "Headphone Jack";
 		simple-audio-card,routing =
 				"IN1P", "Microphone Jack",
+				"IN1N", "Microphone Jack",
 				"Microphone Jack", "MICBIAS1",
-				"Headphone Jack", "HPOL",
-				"Headphone Jack", "HPOR";
+				"IN3P", "Microphone Jack",
+				"IN3N", "Microphone Jack",
+				"Microphone Jack", "MICBIAS2",
+				"Headphone Jack", "SPO",
+				"Headphone Jack", "LOUTL",
+				"Headphone Jack", "LOUTR";
 
 		simple-audio-card,cpu {
-			sound-dai = <&i2s0>;
+				sound-dai = <&i2s0>;
 		};
 		simple-audio-card,codec {
-			sound-dai = <&rt5640>;
+				sound-dai = <&rt5660>;
 		};
 	};
 
@@ -964,15 +969,22 @@
 				/*#interrupt-cells = <2>;*/
 			};
 
-			rt5640: rt5640@1c {
+			rt5660: rt5660@1c {
 				#sound-dai-cells = <0>;
-				compatible = "realtek,rt5640";
+				compatible = "realtek,rt5660";
+				rockchip,cru = <&cru>;
+				rockchip,grf = <&grf>;
 				reg = <0x1c>;
+				codec-avdd-gpio = <&gpio4 7 GPIO_ACTIVE_HIGH>;
+				codec-avdd-delay = <200>;
+				codec-micvdd-gpio = <&gpio4 3 GPIO_ACTIVE_HIGH>;
+				codec-spkvdd-gpio = <&gpio4 6 GPIO_ACTIVE_HIGH>;
+
 				clocks = <&cru SCLK_I2S_8CH_OUT>;
 				clock-names = "mclk";
+
 				pinctrl-names = "default";
-				pinctrl-0 = <&i2s_8ch_mclk>;
-				realtek,in1-differential;
+				pinctrl-0 = <&i2s_8ch_mclk &codec_avdd &codec_micvdd &codec_spkvdd>;
 			};
 		};
 	};
@@ -1738,6 +1750,18 @@
 		};
 	};
 
+	codec {
+		codec_avdd: codec-avdd {
+			rockchip,pins = <4 7 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		codec_micvdd: codec-micvdd {
+			rockchip,pins = <4 3 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		codec_spkvdd: codec-spkvdd {
+			rockchip,pins = <4 6 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+
 	i2s0 {
 		i2s0_8ch_bus_1: i2s0-8ch-bus-1 {
 			rockchip,pins =
@@ -1801,9 +1825,6 @@
 							<2 2	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 3	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 21	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 7	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 6	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 3	RK_FUNC_GPIO &pcfg_pull_down>,
 							<1 0	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 24	RK_FUNC_GPIO &pcfg_pull_up>,
 							<4 29	RK_FUNC_GPIO &pcfg_pull_down>,
