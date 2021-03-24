@@ -133,7 +133,7 @@
 		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h>;
 		minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
 		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_LOW>;
-		system-reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+		system-reset-gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
 		m2-pwr-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
 		timing-interval = <10>;
 	};
@@ -1811,7 +1811,7 @@
 		};
 
 		system_rst_h: system-rst-h {
-			rockchip,pins = <1 6 RK_FUNC_GPIO &pcfg_pull_down>;
+			rockchip,pins = <4 28 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
 		adv_gpios: adv-gpios {
