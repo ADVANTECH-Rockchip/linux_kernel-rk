@@ -1849,7 +1849,6 @@
 							<4 29	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 25	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 6	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 28	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 4	RK_FUNC_GPIO &pcfg_pull_down>,
 							/*<4 18	RK_FUNC_GPIO &pcfg_pull_down>,*/
 							<4 30	RK_FUNC_GPIO &pcfg_pull_down>,
