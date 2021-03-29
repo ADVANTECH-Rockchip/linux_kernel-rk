@@ -130,12 +130,15 @@
 		compatible = "misc-adv-gpio";
 		status = "disabled";
 		pinctrl-names = "default";
-		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h>;
+		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h &tpa2011_en_gpio &tpa2011_vdd_gpio>;
 		minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
 		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_LOW>;
 		system-reset-gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
 		m2-pwr-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
 		timing-interval = <10>;
+
+		tpa2011-en-gpio = <&gpio0 8 GPIO_ACTIVE_LOW>;
+		tpa2011-vdd-gpio = <&gpio4 25 GPIO_ACTIVE_HIGH>;
 	};
 
 	// Backlight edp
@@ -1827,9 +1830,16 @@
 			rockchip,pins = <4 28 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
+		tpa2011_en_gpio:tpa2011-en-gpio {
+			rockchip,pins = <0 8 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+
+		tpa2011_vdd_gpio:tpa2011-vdd-gpio {
+			rockchip,pins = <4 25 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
 		adv_gpios: adv-gpios {
 			rockchip,pins = <4 26	RK_FUNC_GPIO &pcfg_pull_down>,
-							<0 8	RK_FUNC_GPIO &pcfg_pull_up>,
 							<2 9	RK_FUNC_GPIO &pcfg_pull_up>,
 							<2 10	RK_FUNC_GPIO &pcfg_pull_up>,
 							<1 2	RK_FUNC_GPIO &pcfg_pull_down>,
@@ -1847,7 +1857,6 @@
 							<1 0	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 24	RK_FUNC_GPIO &pcfg_pull_up>,
 							<4 29	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 25	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 6	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 4	RK_FUNC_GPIO &pcfg_pull_down>,
 							/*<4 18	RK_FUNC_GPIO &pcfg_pull_down>,*/

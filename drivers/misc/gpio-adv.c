@@ -49,6 +49,11 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 	bool  lan2_reset_active;
     int  timing_interval = 0;
 
+	int tpa2011_en_gpio;
+	bool tpa2011_en_gpio_active;
+	int tpa2011_vdd_gpio;
+	bool tpa2011_vdd_gpio_active;
+
     np = dev->of_node;
 	minipcie_reset_gpio = of_get_named_gpio_flags(np, "minipcie-reset-gpio", 0, &flags);
 	if (gpio_is_valid(minipcie_reset_gpio))
@@ -135,6 +140,32 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
                         GPIOF_OUT_INIT_HIGH, "system reset gpio");
 	}
 
+	tpa2011_vdd_gpio = of_get_named_gpio_flags(np,"tpa2011-vdd-gpio",0,&flags);
+	if(gpio_is_valid(tpa2011_vdd_gpio)) {
+		tpa2011_vdd_gpio_active = flags & OF_GPIO_ACTIVE_LOW;
+		if(tpa2011_vdd_gpio_active)
+			gpio_request_one(pm_reset_gpio, 
+                        GPIOF_OUT_INIT_LOW, "system reset gpio");
+		else
+			gpio_request_one(pm_reset_gpio, 
+                        GPIOF_OUT_INIT_HIGH, "system reset gpio");
+	}
+
+	if (of_property_read_u32(np,"timing-interval",&timing_interval))
+		timing_interval = 50;
+	if(timing_interval)
+		mdelay(timing_interval);
+
+	tpa2011_en_gpio = of_get_named_gpio_flags(np,"tpa2011-en-gpio",0,&flags);
+	if(gpio_is_valid(tpa2011_en_gpio)) {
+		tpa2011_en_gpio_active = flags & OF_GPIO_ACTIVE_LOW;
+		if(tpa2011_en_gpio_active)
+			gpio_request_one(pm_reset_gpio, 
+                        GPIOF_OUT_INIT_LOW, "system reset gpio");
+		else
+			gpio_request_one(pm_reset_gpio, 
+                        GPIOF_OUT_INIT_HIGH, "system reset gpio");
+	}
 	return 0;
 }
 
