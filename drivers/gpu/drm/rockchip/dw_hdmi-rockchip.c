@@ -562,8 +562,6 @@ dw_hdmi_rockchip_mode_valid(struct drm_connector *connector,
 	if (hdmi->dev_type == RK3288_HDMI && mode->clock > 340000)
 		return MODE_BAD;
 
-	if (hdmi->dev_type == RK3288_HDMI && mode->hdisplay > 1920 && mode->hdisplay > 1080 )
-		return MODE_BAD;
 	/*
 	 * ensure all drm display mode can work, if someone want support more
 	 * resolutions, please limit the possible_crtc, only connect to
