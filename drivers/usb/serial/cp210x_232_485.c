@@ -33,6 +33,7 @@ static int __init setup_uart_mode(char *buf)
 {
 	u32 val;
 	int i=0;
+	int b=1;
 	
 	if (!buf)
 		return -EINVAL;

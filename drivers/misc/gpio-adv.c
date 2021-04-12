@@ -53,6 +53,8 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 	bool tpa2011_en_gpio_active;
 	int tpa2011_vdd_gpio;
 	bool tpa2011_vdd_gpio_active;
+	int usb_5v_en_gpio;
+	bool usb_5v_en_gpio_active;
 
     np = dev->of_node;
 	minipcie_reset_gpio = of_get_named_gpio_flags(np, "minipcie-reset-gpio", 0, &flags);
@@ -166,6 +168,18 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 			gpio_request_one(pm_reset_gpio, 
                         GPIOF_OUT_INIT_HIGH, "system reset gpio");
 	}
+
+	usb_5v_en_gpio = of_get_named_gpio_flags(np,"usb-5v-en-gpio",0,&flags);
+	if(gpio_is_valid(usb_5v_en_gpio)) {
+		usb_5v_en_gpio_active = flags & OF_GPIO_ACTIVE_LOW;
+		if(usb_5v_en_gpio_active)
+			gpio_request_one(usb_5v_en_gpio,
+						GPIOF_OUT_INIT_LOW,"usb 5v en gpio");
+		else
+			gpio_request_one(usb_5v_en_gpio,
+						GPIOF_OUT_INIT_HIGH,"usb 5v en gpio");
+	}
+
 	return 0;
 }
 
