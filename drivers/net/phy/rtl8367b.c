@@ -1626,7 +1626,19 @@ static struct platform_driver rtl8367b_driver = {
 	.shutdown	= rtl8367b_shutdown,
 };
 
-module_platform_driver(rtl8367b_driver);
+static int __init rtl8367b_module_init(void)
+{
+	return platform_driver_register(&rtl8367b_driver);
+}
+late_initcall(rtl8367b_module_init);
+
+static void __exit rtl8367b_module_exit(void)
+{
+	platform_driver_unregister(&rtl8367b_driver);
+}
+module_exit(rtl8367b_module_exit);
+
+//module_platform_driver(rtl8367b_driver);
 
 MODULE_DESCRIPTION(RTL8367B_DRIVER_DESC);
 MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org>");
