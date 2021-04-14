@@ -66,7 +66,6 @@
 		edp = &edp;
 		hdmi = &hdmi;
 		dp = &cdn_dp;
-		vpd = &vpd0;
 		dsi = &dsi;
 		dsi1 = &dsi1;
 
@@ -130,7 +129,7 @@
 		compatible = "misc-adv-gpio";
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h &tpa2011_en_gpio &tpa2011_vdd_gpio &usb_5v_en_gpio>;
+		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h &tpa2011_vdd_gpio &usb_5v_en_gpio>;
 		minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
 		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_LOW>;
 		system-reset-gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
@@ -138,7 +137,6 @@
 		usb-5v-en-gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
 		timing-interval = <10>;
 
-		tpa2011-en-gpio = <&gpio0 8 GPIO_ACTIVE_LOW>;
 		tpa2011-vdd-gpio = <&gpio4 25 GPIO_ACTIVE_HIGH>;
 	};
 
@@ -330,20 +328,6 @@
 		regulator-always-on;
 		regulator-boot-on;
 		regulator-uboot-logo;
-		status = "disabled";
-	};
-
-	vpd0: virtual-pd0 {
-		compatible = "linux,extcon-pd-virtual";
-		dp-det-gpios = <&gpio4 25 GPIO_ACTIVE_LOW>; //GPIO4_D1 - DP_HOTPLUG
-		pinctrl-names = "default";
-		pinctrl-0 = <&dp_det>;
-		/* 0: positive, 1: negative*/
-		vpd,init-flip = <0>;
-		/* 0: u2, 1: u3*/
-		vpd,init-ss = <0>;
-		/* 0: dfp, 1: ufp, 2: dp 3: dp/ufp */
-		vpd,init-mode = <2>;
 		status = "disabled";
 	};
 
@@ -575,22 +559,6 @@
 };
 
 &hdmi_in_vopl {
-	status = "disabled";
-};
-
-// dp
-&cdn_dp {
-	status = "disabled";
-	extcon = <&vpd0>;
-	//phys = <&tcphy0_dp>;
-	dp_vop_sel = <1>;
-};
-
-&dp_in_vopb {
-	status = "disabled";
-};
-
-&dp_in_vopl {
 	status = "disabled";
 };
 
@@ -1026,6 +994,7 @@
 	rockchip,i2s-broken-burst-len;
 	rockchip,playback-channels = <8>;
 	rockchip,capture-channels = <8>;
+	amp-mute-gpio = <&gpio0 8 GPIO_ACTIVE_LOW>;
 	#sound-dai-cells = <0>;
 };
 
@@ -1777,11 +1746,6 @@
 		};
 	};
 
-	vdp0 {
-		dp_det: dp-det {
-			rockchip,pins = <4 25 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
 
 	codec {
 		codec_avdd: codec-avdd {
@@ -1792,6 +1756,9 @@
 		};
 		codec_spkvdd: codec-spkvdd {
 			rockchip,pins = <4 6 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		codec_lout_mute: codec-lout-mute {
+			rockchip,pins = <0 8  RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 
@@ -1842,10 +1809,6 @@
 
 		system_rst_h: system-rst-h {
 			rockchip,pins = <4 28 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-
-		tpa2011_en_gpio:tpa2011-en-gpio {
-			rockchip,pins = <0 8 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 
 		tpa2011_vdd_gpio:tpa2011-vdd-gpio {

@@ -49,8 +49,6 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 	bool  lan2_reset_active;
     int  timing_interval = 0;
 
-	int tpa2011_en_gpio;
-	bool tpa2011_en_gpio_active;
 	int tpa2011_vdd_gpio;
 	bool tpa2011_vdd_gpio_active;
 	int usb_5v_en_gpio;
@@ -146,28 +144,17 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 	if(gpio_is_valid(tpa2011_vdd_gpio)) {
 		tpa2011_vdd_gpio_active = flags & OF_GPIO_ACTIVE_LOW;
 		if(tpa2011_vdd_gpio_active)
-			gpio_request_one(pm_reset_gpio, 
-                        GPIOF_OUT_INIT_LOW, "system reset gpio");
+			gpio_request_one(tpa2011_vdd_gpio,
+                        GPIOF_OUT_INIT_LOW, "tap2011 vdd gpio");
 		else
-			gpio_request_one(pm_reset_gpio, 
-                        GPIOF_OUT_INIT_HIGH, "system reset gpio");
+			gpio_request_one(tpa2011_vdd_gpio,
+                        GPIOF_OUT_INIT_HIGH, "tpa2011 vdd gpio");
 	}
 
 	if (of_property_read_u32(np,"timing-interval",&timing_interval))
 		timing_interval = 50;
 	if(timing_interval)
 		mdelay(timing_interval);
-
-	tpa2011_en_gpio = of_get_named_gpio_flags(np,"tpa2011-en-gpio",0,&flags);
-	if(gpio_is_valid(tpa2011_en_gpio)) {
-		tpa2011_en_gpio_active = flags & OF_GPIO_ACTIVE_LOW;
-		if(tpa2011_en_gpio_active)
-			gpio_request_one(pm_reset_gpio, 
-                        GPIOF_OUT_INIT_LOW, "system reset gpio");
-		else
-			gpio_request_one(pm_reset_gpio, 
-                        GPIOF_OUT_INIT_HIGH, "system reset gpio");
-	}
 
 	usb_5v_en_gpio = of_get_named_gpio_flags(np,"usb-5v-en-gpio",0,&flags);
 	if(gpio_is_valid(usb_5v_en_gpio)) {
