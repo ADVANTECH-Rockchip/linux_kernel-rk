@@ -40,7 +40,6 @@
  *     OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 / {
 	aliases {
 		uio_gpio_standard = &uio_gpio_standard;
@@ -64,8 +63,6 @@
 	uio_gpio_standard: uio-gpio-standard {
 		compatible = "uio-gpio";
 		uio-name = "uio-standard";
-		pinctrl-names = "default";
-		pinctrl-0 = <&uio_standard_gpios>;
 
 		status = "okay";
 	};
@@ -73,18 +70,16 @@
 	uio_gpio_4030: uio-gpio-4030 {
 		compatible = "uio-gpio";
 		uio-name = "uio-4030";
-		pinctrl-names = "default";
-		pinctrl-0 = <&uio_4030_gpios>;
 
-		input-gpios = <&gpio2 18 GPIO_ACTIVE_HIGH
-			       &gpio2 24 GPIO_ACTIVE_HIGH
-			       &gpio2 20 GPIO_ACTIVE_HIGH
-			       &gpio2 22 GPIO_ACTIVE_HIGH>;
+		input-gpios = <&gpio_exp2 0 GPIO_ACTIVE_HIGH
+			       &gpio_exp2 2 GPIO_ACTIVE_HIGH
+			       &gpio_exp2 4 GPIO_ACTIVE_HIGH
+			       &gpio_exp2 6 GPIO_ACTIVE_HIGH>;
 
-		output-gpios = <&gpio2 19 GPIO_ACTIVE_LOW
-			        &gpio2 25 GPIO_ACTIVE_LOW
-			        &gpio2 21 GPIO_ACTIVE_LOW
-			        &gpio2 23 GPIO_ACTIVE_LOW>;
+		output-gpios = <&gpio_exp2 1 GPIO_ACTIVE_LOW
+			        &gpio_exp2 3 GPIO_ACTIVE_LOW
+			        &gpio_exp2 5 GPIO_ACTIVE_LOW
+			        &gpio_exp2 7 GPIO_ACTIVE_LOW>;
 
 		status = "disabled";
 	};
@@ -92,12 +87,10 @@
 	uio_gpio_4032: uio-gpio-4032 {
 		compatible = "uio-gpio";
 		uio-name = "uio-4032";
-		pinctrl-names = "default";
-		pinctrl-0 = <&uio_4032_gpios>;
 
-		lan-pwren-gpio = <&gpio2 10 GPIO_ACTIVE_HIGH>;
-		lan-reset-gpio = <&gpio2 12 GPIO_ACTIVE_LOW>;
-		timing-interval = <50>;
+		//lan-pwren-gpio = <&gpio_exp1 1 GPIO_ACTIVE_HIGH>;
+		//lan-reset-gpio = <&gpio_exp1 3 GPIO_ACTIVE_LOW>;
+		//timing-interval = <50>;
 
 		status = "disabled";
 	};
@@ -105,8 +98,6 @@
 	uio_gpio_4034: uio-gpio-4034 {
 		compatible = "uio-gpio";
 		uio-name = "uio-4034";
-		pinctrl-names = "default";
-		pinctrl-0 = <&uio_4034_gpios>;
 
 		status = "disabled";
 	};
@@ -115,12 +106,10 @@
 	uio_gpio_4036: uio-gpio-4036 {
 		compatible = "uio-gpio";
 		uio-name = "uio-4036";
-		pinctrl-names = "default";
-		pinctrl-0 = <&uio_4036_gpios>;
 
-		lan-pwren-gpio = <&gpio2 19 GPIO_ACTIVE_HIGH>;
-		lan-reset-gpio = <&gpio2 25 GPIO_ACTIVE_LOW>;
-		timing-interval = <50>;
+		//lan-pwren-gpio = <&gpio_exp2 1 GPIO_ACTIVE_HIGH>;
+		//lan-reset-gpio = <&gpio_exp2 3 GPIO_ACTIVE_LOW>;
+		//timing-interval = <50>;
 
 		status = "disabled";
 
@@ -129,95 +118,15 @@
  	rtl8367:rtl8367 {
 		compatible = "realtek,rtl8367b";
 		pinctrl-names = "default";
-		//pinctrl-0 = <&rtl_sda &rtl_scl>;
-		gpio-sda = <&gpio2 23  GPIO_ACTIVE_HIGH>;
-		gpio-sck = <&gpio2 22 GPIO_ACTIVE_HIGH>;
+		gpio-sda = <&gpio_exp2 7 GPIO_ACTIVE_HIGH>;
+		gpio-sck = <&gpio_exp2 6 GPIO_ACTIVE_HIGH>;
 		realtek,extif0 = <1 0 1 1 1 1 1 1 2>;
-		status = "disabled";
+		status = "okay";
 	};
 
 };
 
 
-&pinctrl {
-	uio {
-		uio_standard_gpios: uio-standard-gpios{
-			rockchip,pins = <2 9  RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO1
-					<2 10 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO2
-					<2 11 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO3
-					<2 12 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO4
-					<2 18 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO5
-					<2 19 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO6
-					<2 24 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO7
-					<2 25 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO8
-					<2 20 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO9
-					<2 21 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO10
-					<2 22 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO11
-					<2 23 RK_FUNC_GPIO &pcfg_pull_up>;  // GPIO12
-		};
-
-		uio_4030_gpios: uio-4030-gpios{
-			rockchip,pins = <2 9  RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO1
-					<2 10 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO2
-					<2 11 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO3
-					<2 12 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO4
-					<2 18 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO5
-					<2 19 RK_FUNC_GPIO &pcfg_pull_down>,  // GPIO6
-					<2 24 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO7
-					<2 25 RK_FUNC_GPIO &pcfg_pull_down>,  // GPIO8
-					<2 20 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO9
-					<2 21 RK_FUNC_GPIO &pcfg_pull_down>,  // GPIO10
-					<2 22 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO11
-					<2 23 RK_FUNC_GPIO &pcfg_pull_down>;  // GPIO12
-		};
-
-		uio_4032_gpios: uio-4032-gpios{
-			rockchip,pins = <2 9  RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO1
-					<2 10 RK_FUNC_GPIO &pcfg_pull_down>,  // GPIO2    LAN7500_PWREN
-					<2 11 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO3
-					<2 12 RK_FUNC_GPIO &pcfg_pull_down>,  // GPIO4    LAN7500_RESET
-					<2 18 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO5
-					<2 19 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO6
-					<2 24 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO7
-					<2 25 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO8
-					<2 20 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO9
-					<2 21 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO10
-					<2 22 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO11
-					<2 23 RK_FUNC_GPIO &pcfg_pull_up>;  // GPIO12
-		};
-
-		uio_4034_gpios: uio-4034-gpios{
-			rockchip,pins = <2 9  RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO1
-					<2 10 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO2
-					<2 11 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO3
-					<2 12 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO4
-					<2 18 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO5
-					<2 19 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO6
-					<2 24 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO7
-					<2 25 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO8
-					<2 20 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO9
-					<2 21 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO10
-					<2 22 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO11
-					<2 23 RK_FUNC_GPIO &pcfg_pull_up>;  // GPIO12
-		};
-
-		uio_4036_gpios: uio-4036-gpios{
-			rockchip,pins = <2 9  RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO1
-					<2 10 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO2
-					<2 11 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO3
-					<2 12 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO4
-					<2 18 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO5
-					<2 19 RK_FUNC_GPIO &pcfg_pull_down>,  // GPIO6    LAN7500_PWREN
-					<2 24 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO7
-					<2 25 RK_FUNC_GPIO &pcfg_pull_down>,  // GPIO8    LAN7500_RESET
-					<2 20 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO9
-					<2 21 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO10
-					<2 22 RK_FUNC_GPIO &pcfg_pull_up>,  // GPIO11    RTL8367_SCL
-					<2 23 RK_FUNC_GPIO &pcfg_pull_up>;  // GPIO12    RTL8367_SDA
-		};
-	
-	};
-};
 
 
 
