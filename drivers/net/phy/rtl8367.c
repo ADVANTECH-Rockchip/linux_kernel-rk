@@ -1821,7 +1821,7 @@ static int __init rtl8367_module_init(void)
 {
 	return platform_driver_register(&rtl8367_driver);
 }
-module_init(rtl8367_module_init);
+late_initcall(rtl8367_module_init);
 
 static void __exit rtl8367_module_exit(void)
 {
