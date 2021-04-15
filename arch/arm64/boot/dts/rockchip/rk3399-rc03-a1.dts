@@ -1041,6 +1041,7 @@
 &uart0 {
 	dmas = <&dmac_peri 0>, <&dmac_peri 1>;
 	dma-names = "tx", "rx";
+	control-485-dir-gpio = <&gpio2 19 GPIO_ACTIVE_LOW>;
 	status = "okay";
 };
 

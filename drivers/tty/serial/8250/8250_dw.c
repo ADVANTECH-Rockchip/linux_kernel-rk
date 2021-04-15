@@ -27,6 +27,7 @@
 #include <linux/clk.h>
 #include <linux/reset.h>
 #include <linux/pm_runtime.h>
+#include <linux/of_gpio.h>
 
 #include <asm/byteorder.h>
 
@@ -54,6 +55,9 @@
 /* Helper for fifo size calculation */
 #define DW_UART_CPR_FIFO_SIZE(a)	(((a >> 16) & 0xff) * 16)
 
+#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
+int g_control_485_dir_gpio;
+#endif
 
 struct dw8250_data {
 	u8			usr_reg;
@@ -571,6 +575,16 @@ static int dw8250_probe(struct platform_device *pdev)
 
 	pm_runtime_set_active(&pdev->dev);
 	pm_runtime_enable(&pdev->dev);
+
+#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
+	if(p->line == 0)
+	{
+		g_control_485_dir_gpio = of_get_named_gpio_flags((pdev->dev.of_node), "control-485-dir-gpio", 0, NULL);
+		if (gpio_is_valid(g_control_485_dir_gpio))
+			gpio_request_one(g_control_485_dir_gpio,
+					GPIOF_OUT_INIT_LOW, "control 485 gpio");
+	}
+#endif
 
 	return 0;
 

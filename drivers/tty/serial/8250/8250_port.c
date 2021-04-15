@@ -42,6 +42,7 @@
 #include <asm/irq.h>
 
 #include "8250.h"
+#include <linux/of_gpio.h>
 
 /*
  * Debugging.
@@ -54,6 +55,9 @@
 
 #define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
 
+#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
+extern int g_control_485_dir_gpio;
+#endif
 /*
  * Here we define the default xmit fifo size used for each type of UART.
  */
@@ -1345,6 +1349,14 @@ static void serial8250_start_tx(struct uart_port *port)
 		up->acr &= ~UART_ACR_TXDIS;
 		serial_icr_write(up, UART_ACR, up->acr);
 	}
+
+#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
+	if(port->line == 0)
+	{
+		if (gpio_is_valid(g_control_485_dir_gpio))
+			gpio_direction_output(g_control_485_dir_gpio,1);
+	}
+#endif
 }
 
 static void serial8250_throttle(struct uart_port *port)
@@ -1365,9 +1377,18 @@ static void serial8250_stop_rx(struct uart_port *port)
 
 	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
 	up->port.read_status_mask &= ~UART_LSR_DR;
+
 	serial_port_out(port, UART_IER, up->ier);
 
 	serial8250_rpm_put(up);
+
+#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
+	if(port->line == 0 )
+	{
+		if (gpio_is_valid(g_control_485_dir_gpio))
+			gpio_direction_output(g_control_485_dir_gpio,0);
+	}
+#endif
 }
 
 static void serial8250_disable_ms(struct uart_port *port)
