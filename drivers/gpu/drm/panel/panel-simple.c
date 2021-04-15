@@ -344,7 +344,6 @@ static int panel_simple_dsi_send_cmds(struct panel_simple *panel,
 
 	for (i = 0; i < cmds->cmd_cnt; i++) {
 		struct cmd_desc *cmd = &cmds->cmds[i];
-
 		switch (cmd->dchdr.dtype) {
 		case MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM:
 		case MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM:
@@ -552,11 +551,12 @@ static int panel_simple_of_get_adv_mode(struct panel_simple *panel)
 		pr_err("%s: no timings specified\n", of_node_full_name(panel->dev->of_node));
 		return 0;
 	}
-
 	if(panel->desc->type == SCREEN_LVDS)
 		screen_name = rockchip_drm_get_screen_name("lvds");
 	else if(panel->desc->type == SCREEN_EDP)
 		screen_name = rockchip_drm_get_screen_name("edp");
+	else if(panel->desc->type == SCREEN_MIPI) 
+		screen_name = rockchip_drm_get_screen_name("mipi");
 
 	if(screen_name){
 		for (i = 0; i <disp->num_timings; i++){
@@ -781,6 +781,18 @@ static int panel_simple_prepare(struct drm_panel *panel)
 	if (p->desc && p->desc->delay.reset)
 		panel_simple_sleep(p->desc->delay.reset);
 
+#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
+	if (p->reset_gpio)
+		gpiod_direction_output(p->reset_gpio, 0);
+	if (p->desc && p->desc->delay.reset)
+		panel_simple_sleep(p->desc->delay.reset);
+
+	if (p->reset_gpio)
+		gpiod_direction_output(p->reset_gpio, 1);
+	if (p->desc && p->desc->delay.reset)
+		panel_simple_sleep(p->desc->delay.reset);
+#endif
+
 	if (p->reset_gpio)
 		gpiod_direction_output(p->reset_gpio, 0);
 
@@ -982,6 +994,8 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 		screen_name = rockchip_drm_get_screen_name("lvds");
 	else if(of_desc->type == SCREEN_EDP)
 		screen_name = rockchip_drm_get_screen_name("edp");
+	else if(of_desc->type == SCREEN_MIPI)
+		screen_name = rockchip_drm_get_screen_name("mipi");
 
 	if(screen_name){
 		timings_np = of_parse_phandle(dev->of_node, "display-timings", 0);
@@ -1150,7 +1164,6 @@ static int panel_simple_remove(struct device *dev)
 static void panel_simple_shutdown(struct device *dev)
 {
 	struct panel_simple *panel = dev_get_drvdata(dev);
-
 	panel_simple_disable(&panel->base);
 
 #ifndef CONFIG_ARCH_ADVANTECH
@@ -2670,6 +2683,7 @@ static void panel_simple_dsi_shutdown(struct mipi_dsi_device *dsi)
 #endif
 	panel_simple_shutdown(&dsi->dev);
 
+#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
 #ifdef CONFIG_ARCH_ADVANTECH
 	priv = drm->dev_private;
 	drm_for_each_crtc(crtc, drm) {
@@ -2679,6 +2693,7 @@ static void panel_simple_dsi_shutdown(struct mipi_dsi_device *dsi)
 		    priv->crtc_funcs[pipe]->crtc_close)
 			priv->crtc_funcs[pipe]->crtc_close(crtc);
 	}
+#endif
 #endif
 }
 

@@ -76,6 +76,20 @@ config ARCH_ADVANTECH_CHUANDA
 	help
 	  Support rsb-4710 for custom ChuanDa
 
+config ARCH_ADVANTECH_SUPPORT_DSI1
+	bool "Support Advantech DSI1"
+	depends on ARCH_ADVANTECH
+	default n
+	help
+	  Support DSI1
+
+config ARCH_ADVANTECH_SUPPORT_RC03
+	bool "Support Advantech DSI1"
+	depends on ARCH_ADVANTECH
+	default n
+	help
+	  Support RC03
+
 config ARCH_SEATTLE
 	bool "AMD Seattle SoC Family"
 	help
