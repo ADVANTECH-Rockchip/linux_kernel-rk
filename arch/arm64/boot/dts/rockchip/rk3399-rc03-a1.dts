@@ -151,7 +151,7 @@
 		output-gpios = <&gpio2 24 GPIO_ACTIVE_HIGH
 			        &gpio1 13 GPIO_ACTIVE_LOW
 					&gpio1 18 GPIO_ACTIVE_LOW
-			        &gpio4 29 GPIO_ACTIVE_LOW>;
+			        &gpio4 29 GPIO_ACTIVE_HIGH>;
 
 		status = "okay";
 	};
