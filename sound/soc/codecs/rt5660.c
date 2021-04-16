@@ -1308,6 +1308,7 @@ static struct snd_soc_dai_driver rt5660_dai[] = {
 			.rates = RT5660_STEREO_RATES,
 			.formats = RT5660_FORMATS,
 		},
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 		.capture = {
 			.stream_name = "AIF1 Capture",
 			.channels_min = 1,
@@ -1315,6 +1316,7 @@ static struct snd_soc_dai_driver rt5660_dai[] = {
 			.rates = RT5660_STEREO_RATES,
 			.formats = RT5660_FORMATS,
 		},
+#endif
 		.ops = &rt5660_aif_dai_ops,
 	},
 };
