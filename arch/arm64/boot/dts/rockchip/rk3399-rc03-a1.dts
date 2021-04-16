@@ -132,15 +132,13 @@
 		compatible = "misc-adv-gpio";
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h &tpa2011_vdd_gpio &usb_5v_en_gpio>;
+		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h &usb_5v_en_gpio>;
 		minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
 		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_LOW>;
 		system-reset-gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
 		m2-pwr-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
 		usb-5v-en-gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
 		timing-interval = <10>;
-
-		tpa2011-vdd-gpio = <&gpio4 25 GPIO_ACTIVE_HIGH>;
 	};
 
 	misc-adv-export {
@@ -992,12 +990,13 @@
 				codec-avdd-delay = <200>;
 				codec-micvdd-gpio = <&gpio4 3 GPIO_ACTIVE_HIGH>;
 				codec-spkvdd-gpio = <&gpio4 6 GPIO_ACTIVE_HIGH>;
+				amp-shutdown-gpio = <&gpio4 25 GPIO_ACTIVE_HIGH>;
 
 				clocks = <&cru SCLK_I2S_8CH_OUT>;
 				clock-names = "mclk";
 
 				pinctrl-names = "default";
-				pinctrl-0 = <&i2s_8ch_mclk &codec_avdd &codec_micvdd &codec_spkvdd>;
+				pinctrl-0 = <&i2s_8ch_mclk &codec_avdd &codec_micvdd &codec_spkvdd &amp_shutdown_gpio>;
 			};
 		};
 	};
@@ -1777,6 +1776,9 @@
 		codec_spkvdd: codec-spkvdd {
 			rockchip,pins = <4 6 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
+		amp_shutdown_gpio:amp-shutdown-gpio {
+			rockchip,pins = <4 25 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
 		codec_lout_mute: codec-lout-mute {
 			rockchip,pins = <0 8  RK_FUNC_GPIO &pcfg_pull_up>;
 		};
@@ -1829,10 +1831,6 @@
 
 		system_rst_h: system-rst-h {
 			rockchip,pins = <4 28 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-
-		tpa2011_vdd_gpio:tpa2011-vdd-gpio {
-			rockchip,pins = <4 25 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
 		usb_5v_en_gpio: usb-5v-en-gpio {
