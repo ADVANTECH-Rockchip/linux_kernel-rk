@@ -994,6 +994,14 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
 #ifdef CONFIG_ARCH_ROCKCHIP
 		uart->port.line		= up->port.line;
 #endif
+#ifdef CONFIG_ARCH_ADVANTECH
+		uart->rs485_gpio = up->rs485_gpio;
+		uart->rs485_tx_active = up->rs485_tx_active;
+		if(uart->port.rs485.flags & SER_RS485_ENABLED) {
+			hrtimer_init(&uart->tx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+			uart->tx_timer.function = up->tx_timer.function;
+		}
+#endif
 		/* Take tx_loadsz from fifosize if it wasn't set separately */
 		if (uart->port.fifosize && !uart->tx_loadsz)
 			uart->tx_loadsz = uart->port.fifosize;

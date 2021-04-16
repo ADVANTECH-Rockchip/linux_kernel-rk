@@ -37,12 +37,15 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/pm_runtime.h>
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/of_gpio.h>
+#include <linux/gpio.h>
+#endif
 
 #include <asm/io.h>
 #include <asm/irq.h>
 
 #include "8250.h"
-#include <linux/of_gpio.h>
 
 /*
  * Debugging.
@@ -55,9 +58,10 @@
 
 #define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
 
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
-extern int g_control_485_dir_gpio;
+#ifdef CONFIG_ARCH_ADVANTECH
+#define TX_TIMEOUT	500
 #endif
+
 /*
  * Here we define the default xmit fifo size used for each type of UART.
  */
@@ -1316,11 +1320,35 @@ static void serial8250_stop_tx(struct uart_port *port)
 static void serial8250_start_tx(struct uart_port *port)
 {
 	struct uart_8250_port *up = up_to_u8250p(port);
+#ifdef CONFIG_ARCH_ADVANTECH
+	int flag=0;
+#endif
 
 	serial8250_rpm_get_tx(up);
+
+#ifdef CONFIG_ARCH_ADVANTECH
+	if (port->rs485.flags & SER_RS485_ENABLED) {
+		if (port->rs485.flags & SER_RS485_RTS_ON_SEND) {
+			if(!up->tx_dma_enabled){
+				gpio_direction_output(up->rs485_gpio,up->rs485_tx_active);
+				udelay(1);
+				flag=1;
+				//up->tx_dma_enabled = 0;
+			}
+		}
+	}
+#endif
+
 #ifdef CONFIG_ARCH_ROCKCHIP
 	if (up->dma && up->dma->txchan && !up->dma->tx_dma(up))
+#ifdef CONFIG_ARCH_ADVANTECH
+	{
+		up->tx_dma_enabled = 1;
+		goto OUT;
+	}
+#else
 		return;
+#endif
 #else
 	if (up->dma && !up->dma->tx_dma(up))
 		return;
@@ -1350,11 +1378,16 @@ static void serial8250_start_tx(struct uart_port *port)
 		serial_icr_write(up, UART_ACR, up->acr);
 	}
 
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
-	if(port->line == 0)
-	{
-		if (gpio_is_valid(g_control_485_dir_gpio))
-			gpio_direction_output(g_control_485_dir_gpio,1);
+#ifdef CONFIG_ARCH_ADVANTECH
+OUT:
+	if (port->rs485.flags & SER_RS485_ENABLED) {
+		if (port->rs485.flags & SER_RS485_RTS_ON_SEND) {
+			if(flag){
+				hrtimer_try_to_cancel(&up->tx_timer);
+				up->wait_count = TX_TIMEOUT;
+				hrtimer_start(&up->tx_timer, ns_to_ktime(2000000), HRTIMER_MODE_REL);
+			}
+		}
 	}
 #endif
 }
@@ -1377,18 +1410,9 @@ static void serial8250_stop_rx(struct uart_port *port)
 
 	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
 	up->port.read_status_mask &= ~UART_LSR_DR;
-
 	serial_port_out(port, UART_IER, up->ier);
 
 	serial8250_rpm_put(up);
-
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
-	if(port->line == 0 )
-	{
-		if (gpio_is_valid(g_control_485_dir_gpio))
-			gpio_direction_output(g_control_485_dir_gpio,0);
-	}
-#endif
 }
 
 static void serial8250_disable_ms(struct uart_port *port)

@@ -97,8 +97,8 @@
 		dsi_route = &route_dsi;
 		hdmi_route = &route_hdmi;
 
-		hdmi_sound = &hdmi_sound;
-		hdmi_i2s = &i2s2;
+		//hdmi_sound = &hdmi_sound;
+		//hdmi_i2s = &i2s2;
 		dp_phy = &tcphy0;
 
 		debug_console = &fiq_debugger;
@@ -337,15 +337,8 @@
 		status = "okay";
 
 		simple-audio-card,widgets =
-				"Microphone", "Microphone Jack",
 				"Headphone", "Headphone Jack";
 		simple-audio-card,routing =
-				"IN1P", "Microphone Jack",
-				"IN1N", "Microphone Jack",
-				"Microphone Jack", "MICBIAS1",
-				"IN3P", "Microphone Jack",
-				"IN3N", "Microphone Jack",
-				"Microphone Jack", "MICBIAS2",
 				"Headphone Jack", "SPO",
 				"Headphone Jack", "LOUTL",
 				"Headphone Jack", "LOUTR";
@@ -979,19 +972,6 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <2>;
-			pca953x: pca953x@70 {
-				compatible = "pca9538";
-				reg = <0x70>;
-				pinctrl-names = "default";
-				/*pinctrl-0 = <&tx28_pca9554_pins>;*/
-				/*interrupt-parent = <&gpio3>;*/
-				/*interrupts = <28 0>;*/
-				gpio-controller;
-				#gpio-cells = <2>;
-				/*interrupt-controller;*/
-				/*#interrupt-cells = <2>;*/
-			};
-
 			rt5660: rt5660@1c {
 				#sound-dai-cells = <0>;
 				compatible = "realtek,rt5660";
@@ -1026,7 +1006,7 @@
 
 &i2s0 {
 	status = "okay";
-	pinctrl-0 = <&i2s0_8ch_bus_1>;
+	pinctrl-0 = <&i2s0_8ch_bus_1 &codec_lout_mute>;
 	rockchip,i2s-broken-burst-len;
 	rockchip,playback-channels = <8>;
 	rockchip,capture-channels = <8>;
@@ -1050,9 +1030,11 @@
 };
 
 &uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_xfer &uart0_rts_gpio>;
 	dmas = <&dmac_peri 0>, <&dmac_peri 1>;
 	dma-names = "tx", "rx";
-	control-485-dir-gpio = <&gpio2 19 GPIO_ACTIVE_LOW>;
+	rs485-tx-active = <&gpio2 19 GPIO_ACTIVE_LOW>;
 	status = "okay";
 };
 
@@ -1867,6 +1849,10 @@
 							<1 18	RK_FUNC_GPIO &pcfg_pull_down>,
 							<1 13	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 29	RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		uart0_rts_gpio: uart0-rts-gpios {
+			rockchip,pins =	<2 19 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 

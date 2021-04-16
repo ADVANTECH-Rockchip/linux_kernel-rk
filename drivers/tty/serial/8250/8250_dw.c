@@ -27,9 +27,13 @@
 #include <linux/clk.h>
 #include <linux/reset.h>
 #include <linux/pm_runtime.h>
-#include <linux/of_gpio.h>
 
 #include <asm/byteorder.h>
+
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/of_gpio.h>
+#include <linux/gpio.h>
+#endif
 
 #include "8250.h"
 
@@ -55,9 +59,6 @@
 /* Helper for fifo size calculation */
 #define DW_UART_CPR_FIFO_SIZE(a)	(((a >> 16) & 0xff) * 16)
 
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
-int g_control_485_dir_gpio;
-#endif
 
 struct dw8250_data {
 	u8			usr_reg;
@@ -403,6 +404,78 @@ static void dw8250_setup_port(struct uart_port *p)
 		up->capabilities |= UART_CAP_AFE;
 }
 
+#ifdef CONFIG_ARCH_ADVANTECH
+#define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
+
+static int adv_rs485_config(struct uart_port *port,
+			    struct serial_rs485 *rs485conf)
+{
+	/* unimplemented */
+	rs485conf->delay_rts_before_send = 0;
+	rs485conf->delay_rts_after_send = 0;
+
+	/* RTS is required to control the transmitter */
+
+	port->rs485 = *rs485conf;
+
+	return 0;
+}
+
+static enum hrtimer_restart serial_rk_report_dma_tx(struct hrtimer *timer)
+{
+	struct uart_8250_port *data = container_of(timer, struct uart_8250_port, tx_timer);
+	unsigned int set = 0;
+	unsigned int status;
+
+	if (data->tx_dma_enabled){
+		if (data->dma->tx_running){
+			goto cont;
+		}
+	}
+	
+	status = serial_in(data, UART_LSR);
+	if ((status & BOTH_EMPTY) == BOTH_EMPTY){
+		set = 1;
+		goto ret;
+	}
+
+cont:
+	if (--data->wait_count == 0){
+		set = 1;
+		goto ret;
+	}
+
+	if (data->wait_count)
+		hrtimer_start(&data->tx_timer, ns_to_ktime(500000), HRTIMER_MODE_REL);
+
+ret:
+	if(set){
+		data->tx_dma_enabled=0;
+		gpio_direction_output(data->rs485_gpio,!data->rs485_tx_active);
+	}
+	return HRTIMER_NORESTART;
+}
+
+static int of_adv_parse_dt(struct device dev, struct uart_8250_port *port)
+{
+	struct device_node *np = dev.of_node;
+	enum of_gpio_flags flags;
+	
+	port->rs485_gpio = of_get_named_gpio_flags(np, "rs485-tx-active", 0, &flags);
+	port->rs485_tx_active = (flags & OF_GPIO_ACTIVE_LOW)? 0:1;
+	if (gpio_is_valid(port->rs485_gpio))
+	{
+		gpio_request(port->rs485_gpio,"RS485 Select");
+		gpio_direction_output(port->rs485_gpio,!port->rs485_tx_active);
+		port->port.rs485.flags = SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND;
+		port->port.rs485_config = adv_rs485_config;
+		port->tx_timer.function = serial_rk_report_dma_tx;
+	}
+
+	return 0;
+}
+#endif
+
 static int dw8250_probe(struct platform_device *pdev)
 {
 	struct uart_8250_port uart = {};
@@ -534,6 +607,10 @@ static int dw8250_probe(struct platform_device *pdev)
 		}
 	}
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	of_adv_parse_dt(pdev->dev,&uart);
+#endif
+
 	data->rst = devm_reset_control_get_optional(&pdev->dev, NULL);
 	if (IS_ERR(data->rst) && PTR_ERR(data->rst) == -EPROBE_DEFER) {
 		err = -EPROBE_DEFER;
@@ -575,16 +652,6 @@ static int dw8250_probe(struct platform_device *pdev)
 
 	pm_runtime_set_active(&pdev->dev);
 	pm_runtime_enable(&pdev->dev);
-
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
-	if(p->line == 0)
-	{
-		g_control_485_dir_gpio = of_get_named_gpio_flags((pdev->dev.of_node), "control-485-dir-gpio", 0, NULL);
-		if (gpio_is_valid(g_control_485_dir_gpio))
-			gpio_request_one(g_control_485_dir_gpio,
-					GPIOF_OUT_INIT_LOW, "control 485 gpio");
-	}
-#endif
 
 	return 0;
 
