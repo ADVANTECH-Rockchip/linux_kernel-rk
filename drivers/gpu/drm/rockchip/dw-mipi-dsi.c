@@ -794,7 +794,7 @@ static unsigned long dw_mipi_dsi_get_lane_rate(struct dw_mipi_dsi *dsi)
 	if (bpp < 0)
 		bpp = 24;
 
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
 	lanes = dsi->lanes;
 #else
 	lanes = dsi->slave ? dsi->lanes * 2 : dsi->lanes;
@@ -908,7 +908,7 @@ static int dw_mipi_dsi_host_attach(struct mipi_dsi_host *host,
 	dsi->format = device->format;
 	dsi->mode_flags = device->mode_flags;
 
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
 	dsi->panel = of_drm_find_panel(dsi->client);
 	if (!dsi->panel) {
 		DRM_ERROR("failed to find panel\n");
@@ -1102,7 +1102,7 @@ static void dw_mipi_dsi_video_packet_config(struct dw_mipi_dsi *dsi,
 	int pkt_size;
 
 	if (dsi->slave || dsi->master)
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
 		pkt_size = VID_PKT_SIZE(mode->hdisplay);
 #else
 		pkt_size = VID_PKT_SIZE(mode->hdisplay / 2);
@@ -1270,7 +1270,7 @@ static void dw_mipi_dsi_host_init(struct dw_mipi_dsi *dsi)
 
 static void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi)
 {
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
 	if (dsi->slave)
 		dw_mipi_dsi_pre_enable(dsi->slave);
 	clk_prepare_enable(dsi->dphy.cfg_clk);
@@ -1295,7 +1295,7 @@ static void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi)
 	mipi_dphy_power_on(dsi);
 	dw_mipi_dsi_host_power_on(dsi);
 
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 	if (dsi->slave)
 		dw_mipi_dsi_pre_enable(dsi->slave);
 #endif
@@ -1345,7 +1345,7 @@ static void dw_mipi_dsi_vop_routing(struct dw_mipi_dsi *dsi)
 	pipe = drm_of_encoder_active_endpoint_id(dsi->dev->of_node,
 						 &dsi->encoder);
 	grf_field_write(dsi, VOPSEL, pipe);
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 	if (dsi->slave)
 		grf_field_write(dsi->slave, VOPSEL, pipe);
 #endif
@@ -1409,7 +1409,7 @@ dw_mipi_dsi_encoder_atomic_check(struct drm_encoder *encoder,
 	s->eotf = TRADITIONAL_GAMMA_SDR;
 	s->color_space = V4L2_COLORSPACE_DEFAULT;
 
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 	if (dsi->slave)
 		s->output_flags |= ROCKCHIP_OUTPUT_DSI_DUAL_CHANNEL;
 #endif
@@ -1527,7 +1527,7 @@ static int dw_mipi_dsi_dual_channel_probe(struct dw_mipi_dsi *dsi)
 			return -EPROBE_DEFER;
 
 		dsi->slave->master = dsi;
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 		dsi->lanes /= 2;
 #endif
 
@@ -1694,7 +1694,7 @@ static ssize_t dw_mipi_dsi_transfer(struct dw_mipi_dsi *dsi,
 			return ret;
 	}
 
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 	if (dsi->slave)
 		dw_mipi_dsi_transfer(dsi->slave, msg);
 #endif
@@ -1842,19 +1842,19 @@ static int dw_mipi_dsi_bind(struct device *dev, struct device *master,
 	ret = dw_mipi_dsi_dual_channel_probe(dsi);
 	if (ret)
 		return ret;
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
 	if (IS_DSI0(dsi))
 #else
 	if (dsi->master)
 #endif
 		return 0;
 
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 	dsi->panel = of_drm_find_panel(dsi->client);
 #endif
 
 	if (!dsi->panel) {
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 		dsi->bridge = of_drm_find_bridge(dsi->client);
 		if (!dsi->bridge)
 #endif

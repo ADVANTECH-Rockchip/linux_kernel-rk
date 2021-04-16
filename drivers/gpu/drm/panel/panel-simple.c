@@ -781,7 +781,7 @@ static int panel_simple_prepare(struct drm_panel *panel)
 	if (p->desc && p->desc->delay.reset)
 		panel_simple_sleep(p->desc->delay.reset);
 
-#ifdef CONFIG_ARCH_ADVANTECH_SUPPORT_RC03
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
 	if (p->reset_gpio)
 		gpiod_direction_output(p->reset_gpio, 0);
 	if (p->desc && p->desc->delay.reset)
@@ -2683,7 +2683,7 @@ static void panel_simple_dsi_shutdown(struct mipi_dsi_device *dsi)
 #endif
 	panel_simple_shutdown(&dsi->dev);
 
-#ifndef CONFIG_ARCH_ADVANTECH_SUPPORT_DSI1
+#ifndef CONFIG_ARCH_ADVANTECH_RC03
 #ifdef CONFIG_ARCH_ADVANTECH
 	priv = drm->dev_private;
 	drm_for_each_crtc(crtc, drm) {
