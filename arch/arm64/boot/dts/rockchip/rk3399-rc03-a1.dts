@@ -132,12 +132,11 @@
 		compatible = "misc-adv-gpio";
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h &usb_5v_en_gpio>;
+		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h>;
 		minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
 		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_LOW>;
 		system-reset-gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
 		m2-pwr-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
-		usb-5v-en-gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
 		timing-interval = <10>;
 	};
 
@@ -407,6 +406,19 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&otg_vbus_drv>;
 		regulator-name = "vcc_otg_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+	};
+
+	vcc_usb_a: usb-a-regulator {
+		compatible = "regulator-fixed";
+		gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_a_vbus_drv>;
+		regulator-name = "vcc_usb_a_vbus";
+		regulator-always-on;
+		regulator-boot-on;
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
@@ -1709,6 +1721,10 @@
 			rockchip,pins =
 				<4 23 RK_FUNC_GPIO &pcfg_pull_up>; // GPIO4_C7 / USB4_EN_OC_1V8
 		};
+		usb_a_vbus_drv:usb-a-vbus-drv{
+			rockchip,pins =
+				<2 4 RK_FUNC_GPIO &pcfg_pull_down>; // GPIO2_a4 / USB_A_EN
+		 };
 		otg_vbus_drv: otg-vbus-drv {
 			rockchip,pins =
 				<0 3 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO0_A3 / USB0_EN_OC_1V8#
@@ -1831,10 +1847,6 @@
 
 		system_rst_h: system-rst-h {
 			rockchip,pins = <4 28 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-
-		usb_5v_en_gpio: usb-5v-en-gpio {
-			rockchip,pins = <2 4 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
 		adv_gpios: adv-gpios {
