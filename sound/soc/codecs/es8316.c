@@ -555,6 +555,10 @@ static int es8316_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct es8316_priv *es8316 = snd_soc_codec_get_drvdata(codec);
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	es8316->sysclk = freq;
+	return 0;
+#else
 	switch (freq) {
 	case 11289600:
 	case 18432000:
@@ -578,6 +582,7 @@ static int es8316_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 		return 0;
 	}
 	return -EINVAL;
+#endif
 }
 
 static int es8316_set_dai_fmt(struct snd_soc_dai *codec_dai,
