@@ -1034,7 +1034,7 @@
 	pinctrl-0 = <&uart0_xfer &uart0_rts_gpio>;
 	dmas = <&dmac_peri 0>, <&dmac_peri 1>;
 	dma-names = "tx", "rx";
-	rs485-tx-active = <&gpio2 19 GPIO_ACTIVE_LOW>;
+	rs485-tx-active = <&gpio2 19 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -1852,7 +1852,7 @@
 		};
 
 		uart0_rts_gpio: uart0-rts-gpios {
-			rockchip,pins =	<2 19 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins =	<2 19 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 
