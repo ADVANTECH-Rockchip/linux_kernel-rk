@@ -149,7 +149,10 @@
 		output-gpios = <&gpio2 24 GPIO_ACTIVE_LOW
 						&gpio1 13 GPIO_ACTIVE_LOW
 						&gpio1 18 GPIO_ACTIVE_LOW
-						&gpio4 29 GPIO_ACTIVE_HIGH>;
+						&gpio4 29 GPIO_ACTIVE_HIGH
+						&gpio2  4 GPIO_ACTIVE_HIGH
+						&gpio4 23 GPIO_ACTIVE_HIGH>;
+
 	};
 
 	// Backlight edp
@@ -398,29 +401,6 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&otg_vbus_drv>;
 		regulator-name = "vcc_otg_vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		enable-active-high;
-	};
-
-	typec0_host: typec0-host-regulator {
-		compatible = "regulator-fixed";
-		enable-active-high;
-		gpio = <&gpio4 23 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&typec0_en>;
-		regulator-name = "typec0_host";
-		regulator-always-on;
-	};
-
-	vcc_usb_a: usb-a-regulator {
-		compatible = "regulator-fixed";
-		gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&usb_a_vbus_drv>;
-		regulator-name = "vcc_usb_a_vbus";
-		regulator-always-on;
-		regulator-boot-on;
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
@@ -1205,7 +1185,6 @@
 	};
 
 	u2phy0_host: host-port {
-		phy-supply = <&typec0_host>;
 		status = "okay";
 	};
 };
@@ -1694,10 +1673,6 @@
 			rockchip,pins =
 				<4 23 RK_FUNC_GPIO &pcfg_pull_up>; // GPIO4_C7 / USB4_EN_OC_1V8
 		};
-		usb_a_vbus_drv:usb-a-vbus-drv{
-			rockchip,pins =
-				<2 4 RK_FUNC_GPIO &pcfg_pull_down>; // GPIO2_a4 / USB_A_EN
-		};
 		otg_vbus_drv: otg-vbus-drv {
 			rockchip,pins =
 				<0 3 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO0_A3 / USB0_EN_OC_1V8#
@@ -1839,7 +1814,9 @@
 			rockchip,pins = <2 24	RK_FUNC_GPIO &pcfg_pull_up>,
 							<1 18	RK_FUNC_GPIO &pcfg_pull_down>,
 							<1 13	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 29	RK_FUNC_GPIO &pcfg_pull_down>;
+							<4 29	RK_FUNC_GPIO &pcfg_pull_down>,
+							<2 4 RK_FUNC_GPIO &pcfg_pull_down>, // GPIO2_a4 / USB_A_EN
+							<4 23 RK_FUNC_GPIO &pcfg_pull_down>; // GPIO4_c7 / USB_TYPEC0
 		};
 
 		uart0_rts_gpio: uart0-rts-gpios {
