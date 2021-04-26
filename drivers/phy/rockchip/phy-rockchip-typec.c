@@ -925,6 +925,11 @@ static void tcphy_tx_usb3_cfg_lane(struct rockchip_typec_phy *tcphy, u32 lane)
 	writel(0x5098, tcphy->base + TX_PSC_A3(lane));
 	writel(0, tcphy->base + TX_TXCC_MGNFS_MULT_000(lane));
 	writel(0xbf, tcphy->base + XCVR_DIAG_BIDI_CTRL(lane));
+
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
+	writel(0x700, tcphy->base + TX_DIAG_TX_DRV(lane));
+	writel(0x13c, tcphy->base + TX_TXCC_CAL_SCLR_MULT(lane));
+#endif
 }
 
 static void tcphy_rx_usb3_cfg_lane(struct rockchip_typec_phy *tcphy, u32 lane)
