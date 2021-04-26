@@ -911,15 +911,6 @@
 		compatible = "sii,s35390a";
 		reg = <0x30>;
 	};
-
-	adv-wdt-i2c@29 {
-		compatible = "msp430-wdt-i2c";
-		pinctrl-names = "default";
-		pinctrl-0 = <&wdt_en &wdt_ping>;
-		reg = <0x29>;
-		wdt-ping = <&gpio0 10 GPIO_ACTIVE_HIGH>;
-		wdt-en = <&gpio2 12 GPIO_ACTIVE_LOW>;
-	};
 };
 
 &i2c7 {
@@ -935,6 +926,14 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <0>;
+			adv-wdt-i2c@29 {
+				compatible = "msp430-wdt-i2c";
+				pinctrl-names = "default";
+				pinctrl-0 = <&wdt_en &wdt_ping>;
+				reg = <0x29>;
+				wdt-ping = <&gpio0 10 GPIO_ACTIVE_HIGH>;
+				wdt-en = <&gpio2 12 GPIO_ACTIVE_LOW>;
+			};
 		};
 
 		i2c@1{

@@ -41,6 +41,7 @@
 #define REG_WDT_POWER_BTN_MODE 		0x28
 #define REG_WDT_HANDSHAKE 			0x30
 
+#define ADV_HANDSHAKE_A		1
 static struct i2c_client *msp430_client;
 
 static struct {
@@ -197,7 +198,7 @@ static void msp430_wdt_stop(void)
 static int msp430_wdt_open(struct inode *inode, struct file *file)
 {
 	int ret = 0;
-	char val = 'a';
+	int val = ADV_HANDSHAKE_A;
 	if (test_and_set_bit(ADV_WDT_STATUS_OPEN, &msp430_wdt.status))
 		return -EBUSY;
 
