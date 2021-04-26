@@ -311,6 +311,7 @@ static struct miscdevice msp430_wdt_miscdev = {
 void msp430_wdt_restart(void)
 {
 	if(msp430_client) {
+		printk("%s enter \n", __func__);
 		msp430_wdt_i2c_set_timeout(msp430_client, 1);
 		/* don't sleep in restart API */
 		msp430_wdt_start();
