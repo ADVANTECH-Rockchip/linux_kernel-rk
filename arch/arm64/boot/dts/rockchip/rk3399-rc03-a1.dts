@@ -151,8 +151,11 @@
 						&gpio1 18 GPIO_ACTIVE_LOW
 						&gpio4 29 GPIO_ACTIVE_HIGH
 						&gpio2  4 GPIO_ACTIVE_HIGH
-						&gpio4 23 GPIO_ACTIVE_HIGH>;
-
+						&gpio4 23 GPIO_ACTIVE_HIGH
+						&gpio1 23 GPIO_ACTIVE_LOW
+						&gpio2  2 GPIO_ACTIVE_LOW
+						&gpio2  3 GPIO_ACTIVE_LOW
+						&gpio4 21 GPIO_ACTIVE_LOW>;
 	};
 
 	// Backlight edp
@@ -1852,10 +1855,6 @@
 			rockchip,pins = <4 26	RK_FUNC_GPIO &pcfg_pull_down>,
 							<1 9	RK_FUNC_GPIO &pcfg_pull_up>,
 							<1 10	RK_FUNC_GPIO &pcfg_pull_up>,
-							<1 23	RK_FUNC_GPIO &pcfg_pull_down>,
-							<2 2	RK_FUNC_GPIO &pcfg_pull_down>,
-							<2 3	RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 21	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 24	RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 
@@ -1865,7 +1864,11 @@
 							<1 13	RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 29	RK_FUNC_GPIO &pcfg_pull_down>,
 							<2 4 RK_FUNC_GPIO &pcfg_pull_down>, // GPIO2_a4 / USB_A_EN
-							<4 23 RK_FUNC_GPIO &pcfg_pull_down>; // GPIO4_c7 / USB_TYPEC0
+							<4 23 RK_FUNC_GPIO &pcfg_pull_down>, // GPIO4_c7 / USB_TYPEC0
+							<1 23	RK_FUNC_GPIO &pcfg_pull_down>, //CN_GPIO0
+							<2 2	RK_FUNC_GPIO &pcfg_pull_down>, //CN_GPIO1
+							<2 3	RK_FUNC_GPIO &pcfg_pull_down>, //WG_GPIO0
+							<4 21	RK_FUNC_GPIO &pcfg_pull_down>; //WG_GPIO1
 		};
 
 		uart0_rts_gpio: uart0-rts-gpios {
