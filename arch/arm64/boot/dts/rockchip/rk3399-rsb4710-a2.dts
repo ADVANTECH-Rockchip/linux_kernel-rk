@@ -1053,6 +1053,26 @@
 	status = "okay";
 	i2c-scl-rising-time-ns = <475>;
 	i2c-scl-falling-time-ns = <26>;
+
+	touchscreen_id48: tsc2007@48 {
+		compatible = "ti,tsc2007";
+		reg = <0x48>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <0 0>;
+		gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;
+		ti,x-plate-ohms = <180>;
+		linux,wakeup;
+	};
+
+	touchscreen_id4B: tsc2007@4B {
+		compatible = "ti,tsc2007";
+		reg = <0x4B>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <0 0>;
+		gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;
+		ti,x-plate-ohms = <180>;
+		linux,wakeup;
+	};
 };
 
 &i2s0 {
