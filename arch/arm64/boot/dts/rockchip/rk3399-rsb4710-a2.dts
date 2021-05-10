@@ -1057,6 +1057,8 @@
 
 	touchscreen_id48: tsc2007@48 {
 		compatible = "ti,tsc2007";
+		pinctrl-names = "default";
+		pinctrl-0 = <&touch_int>;
 		reg = <0x48>;
 		interrupt-parent = <&gpio2>;
 		interrupts = <0 0>;
@@ -1890,6 +1892,12 @@
 		};
 		codec_lout_mute: codec-lout-mute {
 			rockchip,pins = <4 3  RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	touch {
+		touch_int: touch-int {
+			rockchip,pins =	<2 0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
