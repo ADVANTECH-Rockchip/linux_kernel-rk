@@ -41,7 +41,8 @@
 #define REG_WDT_POWER_BTN_MODE 		0x28
 #define REG_WDT_HANDSHAKE 			0x30
 
-#define ADV_HANDSHAKE_A		1
+#define ADV_HANDSHAKE_A		0xff
+#define ADV_HANDSHAKE_REBOOT 0x1
 static struct i2c_client *msp430_client;
 
 static struct {
@@ -310,12 +311,13 @@ static struct miscdevice msp430_wdt_miscdev = {
 
 void msp430_wdt_restart(void)
 {
+	int ret;
+	int val = ADV_HANDSHAKE_REBOOT;
 	if(msp430_client) {
 		printk("%s enter \n", __func__);
-		msp430_wdt_i2c_set_timeout(msp430_client, 1);
-		/* don't sleep in restart API */
-		msp430_wdt_start();
-
+		ret = msp430_wdt_i2c_write_reg(msp430_client, REG_WDT_HANDSHAKE, &val, sizeof(val));
+		if(ret)
+			printk("%s, reboot set hanshake error\n",__func__);
 		/* wait for wdog to fire */
 		mdelay(2000);
 	}
