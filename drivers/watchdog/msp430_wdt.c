@@ -41,7 +41,7 @@
 #define REG_WDT_POWER_BTN_MODE 		0x28
 #define REG_WDT_HANDSHAKE 			0x30
 
-#define ADV_HANDSHAKE_A		0xff
+#define ADV_HANDSHAKE_REBOOT_VERIFY		0xFF
 #define ADV_HANDSHAKE_REBOOT 0x1
 static struct i2c_client *msp430_client;
 
@@ -198,13 +198,9 @@ static void msp430_wdt_stop(void)
 
 static int msp430_wdt_open(struct inode *inode, struct file *file)
 {
-	int ret = 0;
-	int val = ADV_HANDSHAKE_A;
 	if (test_and_set_bit(ADV_WDT_STATUS_OPEN, &msp430_wdt.status))
 		return -EBUSY;
 
-	ret = msp430_wdt_i2c_write_reg(msp430_client, REG_WDT_HANDSHAKE, &val, sizeof(val));
-	if (!ret)
 	msp430_wdt_start();
 	return nonseekable_open(inode, file);
 }
@@ -230,7 +226,6 @@ static long msp430_wdt_ioctl(struct file *file, unsigned int cmd,
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
 	unsigned int new_value = 0;
-
 	switch (cmd) {
 	case WDIOC_GETSUPPORT:
 		msp430_wdt_ping();
@@ -276,7 +271,6 @@ static ssize_t msp430_wdt_write(struct file *file, const char __user *data,
 {
 	size_t i;
 	char c;
-
 	if (len == 0)	/* Can we see this even ? */
 		return 0;
 
@@ -312,10 +306,11 @@ static struct miscdevice msp430_wdt_miscdev = {
 void msp430_wdt_restart(void)
 {
 	int ret;
-	int val = ADV_HANDSHAKE_REBOOT;
+	unsigned int val = ADV_HANDSHAKE_REBOOT;
 	if(msp430_client) {
 		printk("%s enter \n", __func__);
 		ret = msp430_wdt_i2c_write_reg(msp430_client, REG_WDT_HANDSHAKE, &val, sizeof(val));
+		msleep(50);
 		if(ret)
 			printk("%s, reboot set hanshake error\n",__func__);
 		/* wait for wdog to fire */
@@ -326,6 +321,7 @@ void msp430_wdt_restart(void)
 static int msp430_wdt_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 	int ret;
+	unsigned int val;
 	unsigned int tmp_version;
 	struct device_node *np = client->dev.of_node;
 	enum of_gpio_flags flags;
@@ -348,7 +344,7 @@ static int msp430_wdt_i2c_probe(struct i2c_client *client, const struct i2c_devi
 		return -ENODEV;	
 	msp430_wdt.wdt_en_off = flags & OF_GPIO_ACTIVE_LOW;
 	ret = devm_gpio_request_one(&client->dev, msp430_wdt.gpio_wdt_en,
-				GPIOF_OUT_INIT_LOW, "msp430_wdt.wdt_en");
+				GPIOF_OUT_INIT_HIGH, "msp430_wdt.wdt_en");
 	if (ret < 0) {
 		dev_err(&client->dev, "request gpio failed: %d\n", ret);
 		return ret;
@@ -406,6 +402,14 @@ static int msp430_wdt_i2c_probe(struct i2c_client *client, const struct i2c_devi
 	dev_info(&client->dev,
 						"Advantech MSP430 Watchdog Timer enabled. timeout=%ds (nowayout=%d), Ver.%d\n",
 						msp430_wdt.timeout, nowayout, msp430_wdt_info.firmware_version);
+
+	val = ADV_HANDSHAKE_REBOOT_VERIFY;
+	ret = msp430_wdt_i2c_write_reg(client, REG_WDT_HANDSHAKE, &val, sizeof(val));
+	msleep(50);
+	if(ret)
+		printk("%s,set wdt hanshake FF error\n",__func__);
+	else
+		printk("%s,set wdt handshake FF ok\n",__func__);
 
 	return 0;
 

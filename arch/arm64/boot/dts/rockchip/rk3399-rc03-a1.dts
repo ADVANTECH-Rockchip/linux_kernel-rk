@@ -819,7 +819,7 @@
 
 &i2c7 {
 	status = "okay";
-	clock-frequency = <400000>;
+	clock-frequency = <100000>;
 	pca9545: mux@73 {
 		compatible = "pca9545";
 		reg = <0x73>;
