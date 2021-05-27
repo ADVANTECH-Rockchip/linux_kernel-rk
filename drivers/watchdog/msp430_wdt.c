@@ -41,7 +41,7 @@
 #define REG_WDT_POWER_BTN_MODE 		0x28
 #define REG_WDT_HANDSHAKE 			0x30
 
-#define ADV_HANDSHAKE_REBOOT_VERIFY		0xFF
+#define ADV_HANDSHAKE_REBOOT_VERIFY		0xFE
 #define ADV_HANDSHAKE_REBOOT 0x1
 static struct i2c_client *msp430_client;
 
@@ -251,6 +251,7 @@ static long msp430_wdt_ioctl(struct file *file, unsigned int cmd,
 		msp430_wdt.timeout = new_value;
 		msp430_wdt_i2c_set_timeout(msp430_client, msp430_wdt.timeout);
 		msp430_wdt_ping();
+		return 0;
 	
 		/* Fallthrough to return current value */
 	case WDIOC_GETTIMEOUT:
@@ -407,9 +408,9 @@ static int msp430_wdt_i2c_probe(struct i2c_client *client, const struct i2c_devi
 	ret = msp430_wdt_i2c_write_reg(client, REG_WDT_HANDSHAKE, &val, sizeof(val));
 	msleep(50);
 	if(ret)
-		printk("%s,set wdt hanshake FF error\n",__func__);
+		printk("%s,set wdt hanshake 0x%x error\n",__func__,val);
 	else
-		printk("%s,set wdt handshake FF ok\n",__func__);
+		printk("%s,set wdt handshake 0x%x ok\n",__func__,val);
 
 	return 0;
 
