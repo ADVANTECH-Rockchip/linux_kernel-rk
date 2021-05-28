@@ -235,6 +235,9 @@ static int get_set_conduit_method(struct device_node *np)
 #ifdef CONFIG_ARCH_ADVANTECH
 extern void pm_adv_reboot(void);
 extern void msp430_wdt_restart(void);
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
+extern void msp430_wdt_restart_loader(void);
+#endif
 static int isneed_pm_adv_reboot(const char *cmd)
 {
 	if(!cmd)
@@ -263,6 +266,10 @@ static void psci_sys_reset(enum reboot_mode reboot_mode, const char *cmd)
 			pm_adv_reboot();
 			msp430_wdt_restart();
 		}
+#ifdef CONFIG_ARCH_ADVANTECH_RC03
+		else
+			msp430_wdt_restart_loader();
+#endif
 #endif
 	invoke_psci_fn(PSCI_0_2_FN_SYSTEM_RESET, 0, 0, 0);
 }

@@ -40,9 +40,11 @@
 #define REG_WDT_VERSION 			0x27
 #define REG_WDT_POWER_BTN_MODE 		0x28
 #define REG_WDT_HANDSHAKE 			0x30
+#define REG_WDT_TIMEOUT_REBOOT_COUNT	0x31
 
 #define ADV_HANDSHAKE_REBOOT_VERIFY		0xFE
 #define ADV_HANDSHAKE_REBOOT 0x1
+#define ADV_HANDSHAKE_REBOOT_LOADER 0x2
 static struct i2c_client *msp430_client;
 
 static struct {
@@ -54,6 +56,7 @@ static struct {
 	int gpio_wdt_en;
 	int wdt_en_off;
 	unsigned char version[2];
+	unsigned int timeout_reboot_count;
 } msp430_wdt;
 
 static struct miscdevice msp430_wdt_miscdev;
@@ -169,6 +172,16 @@ static int msp430_wdt_i2c_read_version(struct i2c_client *client, unsigned int *
 	return 0;
 }
 
+static int msp430_wdt_i2c_read_timeout_reboot_count(struct i2c_client *client, unsigned int *val)
+{
+	int ret = 0;
+
+	ret = msp430_wdt_i2c_read_reg(client,REG_WDT_TIMEOUT_REBOOT_COUNT,val,sizeof(val));
+	if (ret)
+		return -EIO;
+	return 0;
+}
+
 static inline void msp430_wdt_ping(void)
 {
 	msp430_wdt.wdt_ping_status= !msp430_wdt.wdt_ping_status;
@@ -228,9 +241,13 @@ static long msp430_wdt_ioctl(struct file *file, unsigned int cmd,
 	unsigned int new_value = 0;
 	switch (cmd) {
 	case WDIOC_GETSUPPORT:
-		msp430_wdt_ping();
+		/*msp430_wdt_ping();*/
 		return copy_to_user(argp, &msp430_wdt_info,
 			sizeof(struct watchdog_info)) ? -EFAULT : 0;
+
+	case WDIOC_GETBOOTSTATUS:
+		 msp430_wdt_i2c_read_timeout_reboot_count(msp430_client,&msp430_wdt.timeout_reboot_count);	
+		return put_user(msp430_wdt.timeout_reboot_count, p);
 
 	case WDIOC_GETSTATUS:
 		return put_user(msp430_wdt.status, p);
@@ -316,6 +333,19 @@ void msp430_wdt_restart(void)
 			printk("%s, reboot set hanshake error\n",__func__);
 		/* wait for wdog to fire */
 		mdelay(2000);
+	}
+}
+
+void msp430_wdt_restart_loader(void)
+{
+	int ret;
+	unsigned int val = ADV_HANDSHAKE_REBOOT_LOADER;
+	if(msp430_client) {
+		printk("%s enter \n", __func__);
+		ret = msp430_wdt_i2c_write_reg(msp430_client, REG_WDT_HANDSHAKE, &val, sizeof(val));
+		msleep(50);
+		if(ret)
+			printk("%s, reboot loader set hanshake error\n",__func__);
 	}
 }
 
