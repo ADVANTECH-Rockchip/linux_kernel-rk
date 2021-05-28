@@ -543,5 +543,19 @@ static void __exit msp430_wdt_i2c_exit(void)
 module_init(msp430_wdt_i2c_init);
 module_exit(msp430_wdt_i2c_exit);
 
+static int __init setup_nowayout(char *buf)
+{
+	char str[10];
+	u32 len;
+	len = (strlen(buf) > (sizeof(str)-1)) ? (sizeof(str)-1) : strlen(buf);
+	memcpy(str,buf,len);
+	if (!strncmp(str,"false",5))
+		nowayout = false;
+	else
+		nowayout = true;
+	return 0;
+}
+
+early_param("nowayout",setup_nowayout);
 MODULE_DESCRIPTION("Advantech MSP430 Watchdog Driver");
 MODULE_LICENSE("GPL");
