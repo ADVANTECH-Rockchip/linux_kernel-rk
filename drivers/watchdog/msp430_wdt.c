@@ -44,7 +44,7 @@
 
 #define ADV_HANDSHAKE_REBOOT_VERIFY		0xFE
 #define ADV_HANDSHAKE_REBOOT 0x1
-#define ADV_HANDSHAKE_REBOOT_LOADER 0x2
+#define ADV_HANDSHAKE_A 0x2
 static struct i2c_client *msp430_client;
 
 static struct {
@@ -211,10 +211,20 @@ static void msp430_wdt_stop(void)
 
 static int msp430_wdt_open(struct inode *inode, struct file *file)
 {
+	unsigned int val = ADV_HANDSHAKE_A;
+	int ret;
+
 	if (test_and_set_bit(ADV_WDT_STATUS_OPEN, &msp430_wdt.status))
 		return -EBUSY;
 
-	msp430_wdt_start();
+	if(msp430_client) {
+		printk("%s enter \n", __func__);
+		ret = msp430_wdt_i2c_write_reg(msp430_client, REG_WDT_HANDSHAKE, &val, sizeof(val));
+		msleep(50);
+		if(ret)
+			printk("%s,set handshake A error\n",__func__);
+		msp430_wdt_start();
+	}
 	return nonseekable_open(inode, file);
 }
 
@@ -333,19 +343,6 @@ void msp430_wdt_restart(void)
 			printk("%s, reboot set hanshake error\n",__func__);
 		/* wait for wdog to fire */
 		mdelay(2000);
-	}
-}
-
-void msp430_wdt_restart_loader(void)
-{
-	int ret;
-	unsigned int val = ADV_HANDSHAKE_REBOOT_LOADER;
-	if(msp430_client) {
-		printk("%s enter \n", __func__);
-		ret = msp430_wdt_i2c_write_reg(msp430_client, REG_WDT_HANDSHAKE, &val, sizeof(val));
-		msleep(50);
-		if(ret)
-			printk("%s, reboot loader set hanshake error\n",__func__);
 	}
 }
 

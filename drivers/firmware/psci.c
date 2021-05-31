@@ -266,10 +266,6 @@ static void psci_sys_reset(enum reboot_mode reboot_mode, const char *cmd)
 			pm_adv_reboot();
 			msp430_wdt_restart();
 		}
-#ifdef CONFIG_ARCH_ADVANTECH_RC03
-		else
-			msp430_wdt_restart_loader();
-#endif
 #endif
 	invoke_psci_fn(PSCI_0_2_FN_SYSTEM_RESET, 0, 0, 0);
 }
