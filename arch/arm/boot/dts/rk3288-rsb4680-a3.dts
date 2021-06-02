@@ -943,7 +943,7 @@
 };
 
 &uart2 {
-	status = "okay";
+	status = "disabled";
 	//dmas = <&dmac_bus_s 4>, <&dmac_bus_s 5>;
 	//dma-names = "tx", "rx";
 };
