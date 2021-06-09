@@ -21,7 +21,7 @@
 #include <linux/delay.h>
 #include <linux/of_gpio.h>
 
-#define ADV_WDT_MAX_TIME	7200		/* in seconds */
+#define ADV_WDT_MAX_TIME	6553		/* in seconds */
 #define ADV_WDT_DEFAULT_TIME	60		/* in seconds */
 
 #define WDOG_SEC_TO_COUNT(s)	(s * 10)	/* Time unit for register: 100ms */
