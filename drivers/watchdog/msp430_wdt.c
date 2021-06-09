@@ -21,7 +21,7 @@
 #include <linux/delay.h>
 #include <linux/of_gpio.h>
 
-#define ADV_WDT_MAX_TIME	7200		/* in seconds */
+#define ADV_WDT_MAX_TIME	6553		/* in seconds */
 #define ADV_WDT_DEFAULT_TIME	60		/* in seconds */
 
 #define WDOG_SEC_TO_COUNT(s)	(s * 10)	/* Time unit for register: 100ms */
@@ -56,7 +56,7 @@ static struct {
 	int gpio_wdt_en;
 	int wdt_en_off;
 	unsigned char version[2];
-	unsigned int timeout_reboot_count;
+	unsigned long timeout_reboot_count;
 } msp430_wdt;
 
 static struct miscdevice msp430_wdt_miscdev;
@@ -172,7 +172,7 @@ static int msp430_wdt_i2c_read_version(struct i2c_client *client, unsigned int *
 	return 0;
 }
 
-static int msp430_wdt_i2c_read_timeout_reboot_count(struct i2c_client *client, unsigned int *val)
+static int msp430_wdt_i2c_read_timeout_reboot_count(struct i2c_client *client, unsigned long *val)
 {
 	int ret = 0;
 
