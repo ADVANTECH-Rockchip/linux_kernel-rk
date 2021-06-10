@@ -355,7 +355,7 @@ static const struct snd_kcontrol_new rt5660_snd_controls[] = {
 #ifdef CONFIG_ARCH_ADVANTECH
 #ifdef CONFIG_ARCH_ADVANTECH_RC03
 	SOC_DOUBLE_TLV("Speaker Playback Volume", RT5660_DAC1_DIG_VOL,
-		RT5660_DAC_L1_VOL_SFT, RT5660_DAC_R1_VOL_SFT, 44, 0,
+		RT5660_DAC_L1_VOL_SFT, RT5660_DAC_R1_VOL_SFT, 26, 0,
 		rt5660_dac_vol_tlv),
 #else
 	SOC_DOUBLE_TLV("Speaker Playback Volume", RT5660_DAC1_DIG_VOL,
