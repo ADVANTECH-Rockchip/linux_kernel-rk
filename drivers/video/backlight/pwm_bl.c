@@ -79,7 +79,7 @@ static void pwm_backlight_power_off(struct pwm_bl_data *pb)
 	if (pb->enable_gpio)
 	{
 		gpiod_set_value(pb->enable_gpio, 0);
-		msleep(10);	
+		//msleep(10);
 	}
 #else
 	if (pb->enable_gpio)
@@ -260,9 +260,9 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 	pb->exit = data->exit;
 	pb->dev = &pdev->dev;
 	pb->enabled = false;
-	pb->dft_enable = 0;
 
 #ifdef CONFIG_ARCH_ADVANTECH
+	pb->dft_enable = 0;
 	if (!of_property_read_u32(node, "default-enable", &ret)) {
 		pb->dft_enable = ret;
 	}
