@@ -105,7 +105,6 @@
 		ethernet0 = &gmac;
 
 		u2phy0_otg = &u2phy0_otg;
-		usbdrd_dwc3_0 = &usbdrd_dwc3_0;
 	};
 
 	fdt_dummy {
@@ -1162,8 +1161,7 @@
 };
 
 &usbdrd_dwc3_0 {
-	dr_mode = "otg";
-	maximum-speed = "high-speed";
+	dr_mode = "host";
 	status = "okay";
 };
 
