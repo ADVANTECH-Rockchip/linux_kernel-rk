@@ -121,10 +121,10 @@ struct uart_8250_port {
 #ifdef CONFIG_ARCH_ADVANTECH
 	/* RS-485/232 fields */
 	uint rs485_gpio;
+	uint rs485_tx_flag;
 	uint rs485_tx_active;
 	struct hrtimer tx_timer;
 	u32 tx_dma_enabled;
-	u32 wait_count;
 #endif
 
 	/* 8250 specific callbacks */
