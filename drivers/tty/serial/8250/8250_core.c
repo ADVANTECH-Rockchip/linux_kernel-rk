@@ -991,7 +991,7 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
 		uart->dma		= up->dma;
 #ifdef CONFIG_ARCH_ADVANTECH
 		uart->rs485_gpio = up->rs485_gpio;
-		uart->rs485_tx_active = up->rs485_tx_active;
+		uart->rs485_tx_flag = up->rs485_tx_flag;
 		if(uart->port.rs485.flags & SER_RS485_ENABLED) {
 			hrtimer_init(&uart->tx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 			uart->tx_timer.function = up->tx_timer.function;
