@@ -58,10 +58,6 @@
 
 #define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
 
-#ifdef CONFIG_ARCH_ADVANTECH
-#define TX_TIMEOUT	500
-#endif
-
 /*
  * Here we define the default xmit fifo size used for each type of UART.
  */
@@ -1320,20 +1316,16 @@ static void serial8250_stop_tx(struct uart_port *port)
 static void serial8250_start_tx(struct uart_port *port)
 {
 	struct uart_8250_port *up = up_to_u8250p(port);
-#ifdef CONFIG_ARCH_ADVANTECH
-	int flag=0;
-#endif
 
 	serial8250_rpm_get_tx(up);
 
 #ifdef CONFIG_ARCH_ADVANTECH
 	if (port->rs485.flags & SER_RS485_ENABLED) {
 		if (port->rs485.flags & SER_RS485_RTS_ON_SEND) {
-			if(!up->tx_dma_enabled){
-				gpio_direction_output(up->rs485_gpio,up->rs485_tx_active);
+			if(!up->rs485_tx_active){
+				gpio_set_value(up->rs485_gpio,up->rs485_tx_flag);
+				up->rs485_tx_active = 1;
 				udelay(1);
-				flag=1;
-				//up->tx_dma_enabled = 0;
 			}
 		}
 	}
@@ -1382,10 +1374,8 @@ static void serial8250_start_tx(struct uart_port *port)
 OUT:
 	if (port->rs485.flags & SER_RS485_ENABLED) {
 		if (port->rs485.flags & SER_RS485_RTS_ON_SEND) {
-			if(flag){
-				hrtimer_try_to_cancel(&up->tx_timer);
-				up->wait_count = TX_TIMEOUT;
-				hrtimer_start(&up->tx_timer, ns_to_ktime(2000000), HRTIMER_MODE_REL);
+			if(up->rs485_tx_active) {
+				hrtimer_start(&up->tx_timer, ns_to_ktime(200000), HRTIMER_MODE_REL);
 			}
 		}
 	}
