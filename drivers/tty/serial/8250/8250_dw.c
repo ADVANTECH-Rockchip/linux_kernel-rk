@@ -424,31 +424,22 @@ static enum hrtimer_restart serial_rk_report_dma_tx(struct hrtimer *timer)
 	unsigned int set = 0;
 	unsigned int status;
 
-	if (data->tx_dma_enabled){
-		if (data->dma->tx_running){
-			goto cont;
-		}
+	if (data->tx_dma_enabled && data->dma->tx_running){
+		goto ret;
 	}
-	
+
 	status = serial_in(data, UART_LSR);
 	if ((status & BOTH_EMPTY) == BOTH_EMPTY){
 		set = 1;
-		goto ret;
 	}
-
-cont:
-	if (--data->wait_count == 0){
-		set = 1;
-		goto ret;
-	}
-
-	if (data->wait_count)
-		hrtimer_start(&data->tx_timer, ns_to_ktime(500000), HRTIMER_MODE_REL);
 
 ret:
 	if(set){
-		data->tx_dma_enabled=0;
-		gpio_direction_output(data->rs485_gpio,!data->rs485_tx_active);
+		gpio_set_value(data->rs485_gpio,!data->rs485_tx_flag);
+		data->rs485_tx_active = 0;
+		data->tx_dma_enabled = 0;
+	} else {
+		hrtimer_start(&data->tx_timer, ns_to_ktime(200000), HRTIMER_MODE_REL);
 	}
 	return HRTIMER_NORESTART;
 }
@@ -484,7 +475,7 @@ static int of_adv_parse_dt(struct device dev, struct uart_8250_port *port)
 		if(gpio_get_value(uart_mode_sel_gpio) == 0){
 			dev_info(&dev, "RS485 MODE\n");
 			port->rs485_gpio = of_get_named_gpio_flags(np, "rs485-tx-active", 0, &flags);
-			port->rs485_tx_active = (flags & OF_GPIO_ACTIVE_LOW)? 0:1;
+			port->rs485_tx_flag = (flags & OF_GPIO_ACTIVE_LOW)? 0:1;
 			if (gpio_is_valid(port->rs485_gpio))
 			{
 				pinctrl = devm_pinctrl_get(port->port.dev);
@@ -496,7 +487,7 @@ static int of_adv_parse_dt(struct device dev, struct uart_8250_port *port)
 							dev_warn(&dev,"pinctrl_select_state rts_gpio failed!");
 						else {
 							gpio_request(port->rs485_gpio,"RS485 Select");
-							gpio_direction_output(port->rs485_gpio,!port->rs485_tx_active);
+							gpio_direction_output(port->rs485_gpio,!port->rs485_tx_flag);
 							port->port.rs485.flags = SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND;
 							port->port.rs485_config = adv_rs485_config;
 							//hrtimer_init(&port->tx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
