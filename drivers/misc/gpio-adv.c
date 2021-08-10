@@ -42,11 +42,13 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 	int  minipcie_reset_gpio;
 	int  m2_pwr_gpio;
 	int  lan2_reset_gpio;
+	int  wlan_enable_gpio;
 	bool  minipcie_pwr_active;
 	bool  m2_reset_active;
 	bool  minipcie_reset_active;
 	bool  m2_pwr_active;
 	bool  lan2_reset_active;
+	bool  wlan_enable_active;
     int  timing_interval = 0;
 
     np = dev->of_node;
@@ -84,6 +86,18 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 		else
 			gpio_request_one(lan2_reset_gpio, 
 						GPIOF_OUT_INIT_LOW, "lan2 reset gpio");
+	}
+	
+	wlan_enable_gpio = of_get_named_gpio_flags(np, "wlan-enable-gpio", 0, &flags);
+	if (gpio_is_valid(wlan_enable_gpio))
+	{
+		wlan_enable_active = !(flags & OF_GPIO_ACTIVE_LOW);
+		if(wlan_enable_active)
+			gpio_request_one(wlan_enable_gpio, 
+						GPIOF_OUT_INIT_HIGH, "wlan enable gpio");
+		else
+			gpio_request_one(wlan_enable_gpio, 
+						GPIOF_OUT_INIT_LOW, "wlan enable gpio");
 	}
 
 	minipcie_pwr_gpio = of_get_named_gpio_flags(np, "minipcie-pwr-gpio", 0, &flags);

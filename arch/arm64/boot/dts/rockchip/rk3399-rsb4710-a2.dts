@@ -137,11 +137,12 @@
 		compatible = "misc-adv-gpio";
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_l &m2_pwr_h &system_rst_h &adv_gpios>;
+		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_l &m2_pwr_h &wifi_enable_h &system_rst_h &adv_gpios>;
 		minipcie-pwr-gpio = <&gpio2 3 GPIO_ACTIVE_HIGH>;
 		minipcie-reset-gpio = <&gpio3 29 GPIO_ACTIVE_LOW>;
 		m2-pwr-gpio = <&gpio4 21 GPIO_ACTIVE_HIGH>;
 		//m2-reset-gpio = <&gpio2 28 GPIO_ACTIVE_LOW>;
+		wlan-enable-gpio = <&gpio0 11 GPIO_ACTIVE_HIGH>;
 		system-reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
 		timing-interval = <110>;
 	};
@@ -412,7 +413,7 @@
 		clocks = <&rk808 1>;
 		clock-names = "ext_clock";
 		pinctrl-names = "default";
-		pinctrl-0 = <&wifi_enable_h>;
+		pinctrl-0 = <&wifi_reset_h>;
 
 		/*
 		 * On the module itself this is one of these (depending
@@ -420,7 +421,7 @@
 		 * - SDIO_RESET_L_WL_REG_ON
 		 * - PDN (power down when low)
 		 */
-		reset-gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
 	};
 
 	wireless-wlan {
@@ -1793,6 +1794,9 @@
 	};
 
 	sdio-pwrseq {
+		wifi_reset_h: wifi-reset-h {
+			rockchip,pins = <0 10 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
 		wifi_enable_h: wifi-enable-h {
 			rockchip,pins = <0 11 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
