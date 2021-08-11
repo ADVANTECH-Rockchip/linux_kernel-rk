@@ -234,6 +234,8 @@
 #define    RTL8367B_REG_PHY_AD    0x130f
 #endif 
 
+#define KEEP_UNUSED_CODE 0
+
 struct rtl8367b_initval {
 	u16 reg;
 	u16 val;
@@ -1388,6 +1390,7 @@ static const struct switch_dev_ops rtl8367b_sw_ops = {
 	.get_port_link = rtl8367b_sw_get_port_link,
 };
 
+#if KEEP_UNUSED_CODE
 static int rtl8367b_switch_init(struct rtl8366_smi *smi)
 {
 	struct switch_dev *dev = &smi->sw_dev;
@@ -1406,6 +1409,7 @@ static int rtl8367b_switch_init(struct rtl8366_smi *smi)
 
 	return err;
 }
+#endif
 
 static void rtl8367b_switch_cleanup(struct rtl8366_smi *smi)
 {
@@ -1517,6 +1521,14 @@ static int  rtl8367b_probe(struct platform_device *pdev)
 {
 	struct rtl8366_smi *smi;
 	int err;
+#if 1//ADVANTECH
+#if	KEEP_UNUSED_CODE
+	int test;
+	u32 chip_ver;
+#endif
+	int ret;
+	u32 chip_num;
+#endif
 
 	smi = rtl8366_smi_probe(pdev);
 	if (!smi)
@@ -1543,9 +1555,6 @@ static int  rtl8367b_probe(struct platform_device *pdev)
 #endif
 
 #if 1//ADVANTECH
-	int test,ret;
-	u32 chip_num;
-	u32 chip_ver;
 	rtl8366_smi_write_reg(smi, RTL8367B_RTL_MAGIC_ID_REG,
 			      RTL8367B_RTL_MAGIC_ID_VAL);  //rtl8367b_setAsicReg(0x13C2, 0x0249)
 
@@ -1574,9 +1583,11 @@ static int  rtl8367b_probe(struct platform_device *pdev)
 
 	return 0;
 
+#if KEEP_UNUSED_CODE
  err_clear_drvdata:
 	platform_set_drvdata(pdev, NULL);
 	rtl8366_smi_cleanup(smi);
+#endif
  err_free_smi:
 	kfree(smi);
 	return err;

@@ -345,10 +345,4 @@ swconfig_destroy_led_trigger(struct switch_dev *swdev)
 	}
 }
 
-#else /* SWCONFIG_LEDS */
-static inline int
-swconfig_create_led_trigger(struct switch_dev *swdev) { return 0; }
-
-static inline void
-swconfig_destroy_led_trigger(struct switch_dev *swdev) { }
 #endif /* CONFIG_SWCONFIG_LEDS */

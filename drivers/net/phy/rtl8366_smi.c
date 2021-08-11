@@ -31,6 +31,8 @@
 #define RTL8366_SMI_HW_STOP_DELAY		25	/* msecs */
 #define RTL8366_SMI_HW_START_DELAY		100	/* msecs */
 
+#define KEEP_UNUSED_CODE 0
+
 static inline void rtl8366_smi_clk_delay(struct rtl8366_smi *smi)
 {
 	ndelay(smi->clk_delay);
@@ -568,6 +570,7 @@ int rtl8366_reset_vlan(struct rtl8366_smi *smi)
 }
 EXPORT_SYMBOL_GPL(rtl8366_reset_vlan);
 
+#if KEEP_UNUSED_CODE
 static int rtl8366_init_vlan(struct rtl8366_smi *smi)
 {
 	int port;
@@ -596,6 +599,7 @@ static int rtl8366_init_vlan(struct rtl8366_smi *smi)
 
 	return rtl8366_enable_vlan(smi, 1);
 }
+#endif
 
 #ifdef CONFIG_RTL8366_SMI_DEBUG_FS
 int rtl8366_debugfs_open(struct inode *inode, struct file *file)
@@ -828,6 +832,7 @@ static const struct file_operations fops_rtl8366_mibs = {
 	.owner = THIS_MODULE
 };
 
+#if KEEP_UNUSED_CODE
 static void rtl8366_debugfs_init(struct rtl8366_smi *smi)
 {
 	struct dentry *node;
@@ -897,6 +902,7 @@ static void rtl8366_debugfs_init(struct rtl8366_smi *smi)
 		dev_err(smi->parent, "Creating debugfs file '%s' failed\n",
 			"mibs");
 }
+#endif
 
 static void rtl8366_debugfs_remove(struct rtl8366_smi *smi)
 {
@@ -910,6 +916,7 @@ static inline void rtl8366_debugfs_init(struct rtl8366_smi *smi) {}
 static inline void rtl8366_debugfs_remove(struct rtl8366_smi *smi) {}
 #endif /* CONFIG_RTL8366_SMI_DEBUG_FS */
 
+#if KEEP_UNUSED_CODE
 static int rtl8366_smi_mii_init(struct rtl8366_smi *smi)
 {
 	int ret;
@@ -944,6 +951,7 @@ static int rtl8366_smi_mii_init(struct rtl8366_smi *smi)
  err:
 	return ret;
 }
+#endif
 
 static void rtl8366_smi_mii_cleanup(struct rtl8366_smi *smi)
 {

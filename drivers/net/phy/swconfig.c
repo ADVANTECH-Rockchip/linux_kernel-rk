@@ -1034,7 +1034,6 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 	struct switch_dev *sdev;
 	const int max_switches = 8 * sizeof(unsigned long);
 	unsigned long in_use = 0;
-	int err;
 	int i;
 	INIT_LIST_HEAD(&dev->dev_list);
 	if (netdev) {
@@ -1087,9 +1086,9 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 	list_add_tail(&dev->dev_list, &swdevs);
 	swconfig_unlock();
 
-	err = swconfig_create_led_trigger(dev);
-	if (err)
-		return err;
+#ifdef CONFIG_SWCONFIG_LEDS
+	return swconfig_create_led_trigger(dev);
+#endif
 
 	return 0;
 }
@@ -1098,7 +1097,9 @@ EXPORT_SYMBOL_GPL(register_switch);
 void
 unregister_switch(struct switch_dev *dev)
 {
+#ifdef CONFIG_SWCONFIG_LEDS
 	swconfig_destroy_led_trigger(dev);
+#endif
 	kfree(dev->portbuf);
 	mutex_lock(&dev->sw_mutex);
 	swconfig_lock();
