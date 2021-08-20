@@ -3110,8 +3110,7 @@ int stmmac_dvr_probe(struct device *device,
 			of_property_read_u32_array(device->of_node, "mac_delay",
 						   delay_config, delay_table_size);
 			for (i = 0; i+2 < delay_table_size; i+=3) {
-				if ((priv->mii->phy_map[phy_id]->phy_id == PHY_ID_RTL8211F) || 
-					(priv->mii->phy_map[phy_id]->phy_id == PHY_ID_YT8521)) {
+				if (priv->mii->phy_map[phy_id]->phy_id == delay_config[i]) {
 					plat_dat->tx_delay = delay_config[i+1];
 					plat_dat->rx_delay = delay_config[i+2];
 					break;
