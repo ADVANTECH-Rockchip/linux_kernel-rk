@@ -1825,36 +1825,43 @@ static int rk_gmac_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	bsp_priv = plat_dat->bsp_priv;
+	plat_dat->tx_delay = -1;
+	plat_dat->rx_delay = -1;
+#endif
+
 	ret = stmmac_dvr_probe(&pdev->dev, plat_dat, &stmmac_res);
 	if (ret)
 		goto err_gmac_powerdown;
 
 #ifdef CONFIG_ARCH_ADVANTECH
-	bsp_priv = plat_dat->bsp_priv;
-	bsp_priv->tx_delay = plat_dat->tx_delay;
-	bsp_priv->rx_delay = plat_dat->rx_delay;
-	switch (bsp_priv->phy_iface) {
-	case PHY_INTERFACE_MODE_RGMII:
-		dev_info(&pdev->dev, "reinit for RGMII\n");
-		bsp_priv->ops->set_to_rgmii(bsp_priv, bsp_priv->tx_delay,
-					    bsp_priv->rx_delay);
-		break;
-	case PHY_INTERFACE_MODE_RGMII_ID:
-		dev_info(&pdev->dev, "reinit for RGMII_ID\n");
-		bsp_priv->ops->set_to_rgmii(bsp_priv, 0, 0);
-		break;
-	case PHY_INTERFACE_MODE_RGMII_RXID:
-		dev_info(&pdev->dev, "reinit for RGMII_RXID\n");
-		bsp_priv->ops->set_to_rgmii(bsp_priv, bsp_priv->tx_delay, 0);
-		break;
-	case PHY_INTERFACE_MODE_RGMII_TXID:
-		dev_info(&pdev->dev, "reinit for RGMII_TXID\n");
-		bsp_priv->ops->set_to_rgmii(bsp_priv, 0, bsp_priv->rx_delay);
-		break;
-	case PHY_INTERFACE_MODE_RMII:
-		dev_info(&pdev->dev, "init for RMII\n");
-		bsp_priv->ops->set_to_rmii(bsp_priv);
-		break;
+ 	if((plat_dat->tx_delay >= 0) && (plat_dat->rx_delay >= 0)) {
+		bsp_priv->tx_delay = plat_dat->tx_delay;
+		bsp_priv->rx_delay = plat_dat->rx_delay;
+		switch (bsp_priv->phy_iface) {
+		case PHY_INTERFACE_MODE_RGMII:
+			dev_info(&pdev->dev, "reinit for RGMII\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, bsp_priv->tx_delay,
+						    bsp_priv->rx_delay);
+			break;
+		case PHY_INTERFACE_MODE_RGMII_ID:
+			dev_info(&pdev->dev, "reinit for RGMII_ID\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, 0, 0);
+			break;
+		case PHY_INTERFACE_MODE_RGMII_RXID:
+			dev_info(&pdev->dev, "reinit for RGMII_RXID\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, bsp_priv->tx_delay, 0);
+			break;
+		case PHY_INTERFACE_MODE_RGMII_TXID:
+			dev_info(&pdev->dev, "reinit for RGMII_TXID\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, 0, bsp_priv->rx_delay);
+			break;
+		case PHY_INTERFACE_MODE_RMII:
+			dev_info(&pdev->dev, "init for RMII\n");
+			bsp_priv->ops->set_to_rmii(bsp_priv);
+			break;
+		}
 	}
 #endif
 
