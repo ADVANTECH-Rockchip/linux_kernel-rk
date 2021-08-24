@@ -54,6 +54,10 @@
 #include "dwmac-rk-tool.h"
 #include <linux/reset.h>
 #include <linux/of_mdio.h>
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/motorcomm_phy.h>
+#include <linux/proc_fs.h>
+#endif
 
 #define	STMMAC_ALIGN(x)		__ALIGN_KERNEL(x, SMP_CACHE_BYTES)
 
@@ -1784,9 +1788,11 @@ static int stmmac_open(struct net_device *dev)
 	int ret;
 
 #ifdef CONFIG_ARCH_ADVANTECH
-	priv->exit=1;
-	cancel_delayed_work_sync(&priv->work);
-	//flush_scheduled_work();
+	if(priv->exit != -1) {
+		priv->exit=1;
+		cancel_delayed_work_sync(&priv->work);
+		//flush_scheduled_work();
+	}
 #endif
 
 	if (priv->pcs != STMMAC_PCS_RGMII && priv->pcs != STMMAC_PCS_TBI &&
@@ -2861,6 +2867,8 @@ static int stmmac_hw_init(struct stmmac_priv *priv)
 
 #ifdef CONFIG_ARCH_ADVANTECH
 #define REALTEK_8211F_PHY_LED	0x8910
+#define PHY_ID_RTL8211F		0x001cc916
+struct platform_device *gdev= NULL;
 
 static void stmmac_mdio_work_func(struct work_struct *work)
 {
@@ -2868,7 +2876,7 @@ static void stmmac_mdio_work_func(struct work_struct *work)
 		container_of(work, struct stmmac_priv, work.work);
 	int val;
 
-	if(!stmmac->exit)
+	if(stmmac->exit == 0)
 	{
 		phy_write(stmmac->phydev, 0x1f, 0x0d04);
 		val = phy_read(stmmac->phydev, 0x10);
@@ -2878,6 +2886,54 @@ static void stmmac_mdio_work_func(struct work_struct *work)
 		mod_delayed_work(system_wq, &stmmac->work, msecs_to_jiffies(20));
 	}
 }
+
+static ssize_t
+stmmac_proc_write(struct file *file, const char __user * buffer,
+               size_t count, loff_t *offset)
+{
+	int i,reg,val;
+	char line[16],*p;
+	int ret;
+	struct platform_device *pdev = (struct platform_device *)gdev;
+	struct net_device *ndev = platform_get_drvdata(pdev);
+	struct stmmac_priv *fep = netdev_priv(ndev);
+
+	ret = copy_from_user(line, buffer, count);
+	if (ret)
+		return -EFAULT;
+
+	for (i = 0 ; i < PHY_MAX_ADDR; i++)
+	{
+		if (fep->mii->phy_map[i])
+			break;
+	}
+	p = line;
+	reg=simple_strtoul(p, NULL, 16);
+	p=strstr(p," ");
+	val=simple_strtoul(p+1, NULL, 16);
+	pr_info("%s,reg=0x%x,val=0x%x\n",__func__,reg,val);
+
+	/* write 0 to access UTP */
+	fep->mii->write(fep->mii, i, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	fep->mii->write(fep->mii, i, REG_DEBUG_DATA, 0);
+
+	fep->mii->write(fep->mii, i, REG_DEBUG_ADDR_OFFSET, reg);
+	ret = fep->mii->read(fep->mii, i, REG_DEBUG_DATA);
+	pr_info("%s,org 0x%x=0x%x\n",__func__,reg,ret);
+	ret = val;
+	fep->mii->write(fep->mii, i, REG_DEBUG_ADDR_OFFSET, reg);
+	fep->mii->write(fep->mii, i, REG_DEBUG_DATA, ret);
+	fep->mii->write(fep->mii, i, REG_DEBUG_ADDR_OFFSET, reg);
+	ret = fep->mii->read(fep->mii, i, REG_DEBUG_DATA);
+	pr_info("%s,new 0x%x=0x%x\n",__func__,reg,ret);
+
+	return count;
+}
+
+static const struct file_operations net_testmode_fops = {
+	.owner = THIS_MODULE,
+	.write = stmmac_proc_write,
+};
 #endif
 
 #ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
@@ -2910,6 +2966,8 @@ int stmmac_dvr_probe(struct device *device,
 #ifdef CONFIG_ARCH_ADVANTECH
 	int phy_id;
 	int val;
+	int delay_table_size;
+	u32 *delay_config;
 #endif
 
 	ndev = alloc_etherdev(sizeof(struct stmmac_priv));
@@ -3067,7 +3125,27 @@ int stmmac_dvr_probe(struct device *device,
 			continue;
 		break;
 	}
-	if (phy_id < PHY_MAX_ADDR) {
+
+	if (of_get_property(device->of_node, "mac_delay", &val)) {
+		delay_config = kmalloc(val, GFP_KERNEL);
+		if (delay_config) {
+			int i;
+			delay_table_size = val / sizeof(u32);
+			of_property_read_u32_array(device->of_node, "mac_delay",
+						   delay_config, delay_table_size);
+			for (i = 0; i+2 < delay_table_size; i+=3) {
+				if (priv->mii->phy_map[phy_id]->phy_id == delay_config[i]) {
+					plat_dat->tx_delay = delay_config[i+1];
+					plat_dat->rx_delay = delay_config[i+2];
+					break;
+				}
+			}
+
+			kfree(delay_config);
+		}
+	}
+	priv->exit=-1;
+	if ((phy_id < PHY_MAX_ADDR) && (PHY_ID_RTL8211F == priv->mii->phy_map[phy_id]->phy_id)) {
 		if(priv->enable_phy_delay) {
 			priv->mii->write(priv->mii, phy_id, 0x1f, 0x0d08);
 			val = priv->mii->read(priv->mii, phy_id, 0x11);
@@ -3112,6 +3190,9 @@ int stmmac_dvr_probe(struct device *device,
 		INIT_DELAYED_WORK(&priv->work, stmmac_mdio_work_func);
 		mod_delayed_work(system_wq, &priv->work, msecs_to_jiffies(60));
 	}
+
+	gdev = to_platform_device(device);
+	proc_create("net_testmode", 0777, NULL, &net_testmode_fops);
 #endif
 
 	ret = register_netdev(ndev);

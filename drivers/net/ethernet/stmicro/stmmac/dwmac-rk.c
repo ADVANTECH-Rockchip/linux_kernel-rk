@@ -31,6 +31,9 @@
 #include <linux/mfd/syscon.h>
 #include <linux/regmap.h>
 #include <linux/pm_runtime.h>
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/motorcomm_phy.h>
+#endif
 #include <linux/soc/rockchip/rk_vendor_storage.h>
 #include "stmmac_platform.h"
 #include "dwmac-rk-tool.h"
@@ -1636,7 +1639,7 @@ out:
 }
 
 #ifdef CONFIG_ARCH_ADVANTECH
-#define RTL8211F_PHY_ID		0x001cc916
+#define PHY_ID_RTL8211F		0x001cc916
 
 static int rtl8211f_phy_fixup(struct phy_device *phydev)
 {
@@ -1648,6 +1651,162 @@ static int rtl8211f_phy_fixup(struct phy_device *phydev)
 
 	return 0;
 }
+
+static int yt8521_phy_fixup(struct phy_device *dev)
+{
+	int ret;
+	int val;
+
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+
+	/* disable auto sleep */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0x27);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val &= ~(0x1 << 15);
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	/* enable RXC clock when no wire plug */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xc);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val &= ~(1 << 12);
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	/* enable PHY SyncE clock output */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa012);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val &= ~(3 << 1);
+	val |= (7 << 3);
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	/* config PHY Rxc_dly */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa001);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val &= ~(1 << 8);
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	/* config PHY Txc_dly */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa003);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val &= ~0xff;
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	/* config LED0 as ACT blinking */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa00c);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val = 0xe600;
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	/* config LED1 as 1000M link on */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa00d);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val = 0xc040;
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	/* config LED2 as 100M link on */
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_DATA, 0);
+	if (ret < 0)
+		return ret;
+	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa00e);
+	if (ret < 0)
+		return ret;
+	val = phy_read(dev, REG_DEBUG_DATA);
+	if (val < 0)
+		return val;
+	val = 0xc020;
+	ret = phy_write(dev, REG_DEBUG_DATA, val);
+	if (ret < 0)
+		return ret;
+
+	return 0;
+}
 #endif
 
 static int rk_gmac_probe(struct platform_device *pdev)
@@ -1656,6 +1815,9 @@ static int rk_gmac_probe(struct platform_device *pdev)
 	struct stmmac_resources stmmac_res;
 	const struct rk_gmac_ops *data;
 	int ret;
+#ifdef CONFIG_ARCH_ADVANTECH
+	struct rk_priv_data *bsp_priv;
+#endif
 
 	data = of_device_get_match_data(&pdev->dev);
 	if (!data) {
@@ -1672,8 +1834,10 @@ static int rk_gmac_probe(struct platform_device *pdev)
 		return PTR_ERR(plat_dat);
 
 #ifdef CONFIG_ARCH_ADVANTECH
+	ret = phy_register_fixup_for_uid(PHY_ID_YT8521, MOTORCOMM_PHY_ID_MASK,
+					yt8521_phy_fixup);
 	/* register the PHY board fixup (for TI RTL8211F) */
-	ret = phy_register_fixup_for_uid(RTL8211F_PHY_ID, 0xfffffff0,
+	ret = phy_register_fixup_for_uid(PHY_ID_RTL8211F, 0xfffffff0,
 					 rtl8211f_phy_fixup);
 	/* we can live without it, so just issue a warning */
 	if (ret)
@@ -1696,9 +1860,46 @@ static int rk_gmac_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	bsp_priv = plat_dat->bsp_priv;
+	plat_dat->tx_delay = -1;
+	plat_dat->rx_delay = -1;
+#endif
+
 	ret = stmmac_dvr_probe(&pdev->dev, plat_dat, &stmmac_res);
 	if (ret)
 		goto err_gmac_powerdown;
+
+#ifdef CONFIG_ARCH_ADVANTECH
+ 	if((plat_dat->tx_delay >= 0) && (plat_dat->rx_delay >= 0)) {
+		bsp_priv->tx_delay = plat_dat->tx_delay;
+		bsp_priv->rx_delay = plat_dat->rx_delay;
+		dev_info(&pdev->dev, "reconfigure tx_delay to 0x%x,rx_delay to 0x%x\n",bsp_priv->tx_delay,bsp_priv->rx_delay);
+		switch (bsp_priv->phy_iface) {
+		case PHY_INTERFACE_MODE_RGMII:
+			dev_info(&pdev->dev, "reinit for RGMII\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, bsp_priv->tx_delay,
+						    bsp_priv->rx_delay);
+			break;
+		case PHY_INTERFACE_MODE_RGMII_ID:
+			dev_info(&pdev->dev, "reinit for RGMII_ID\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, 0, 0);
+			break;
+		case PHY_INTERFACE_MODE_RGMII_RXID:
+			dev_info(&pdev->dev, "reinit for RGMII_RXID\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, bsp_priv->tx_delay, 0);
+			break;
+		case PHY_INTERFACE_MODE_RGMII_TXID:
+			dev_info(&pdev->dev, "reinit for RGMII_TXID\n");
+			bsp_priv->ops->set_to_rgmii(bsp_priv, 0, bsp_priv->rx_delay);
+			break;
+		case PHY_INTERFACE_MODE_RMII:
+			dev_info(&pdev->dev, "init for RMII\n");
+			bsp_priv->ops->set_to_rmii(bsp_priv);
+			break;
+		}
+	}
+#endif
 
 	return 0;
 
