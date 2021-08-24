@@ -2877,7 +2877,7 @@ stmmac_proc_write(struct file *file, const char __user * buffer,
                size_t count, loff_t *offset)
 {
 	int i,reg,val;
-	char line[8],*p;
+	char line[16],*p;
 	int ret;
 	struct platform_device *pdev = (struct platform_device *)gdev;
 	struct net_device *ndev = platform_get_drvdata(pdev);
