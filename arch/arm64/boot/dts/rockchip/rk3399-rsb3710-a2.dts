@@ -615,8 +615,14 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&rgmii_16ma_pins &rgmii_phy_reset>;
 	enable_phy_delay = <0>;
-	tx_delay = <0x2e>;
-	rx_delay = <0x20>;
+	tx_delay = <0>;
+	rx_delay = <0>;
+	mac_delay = <//phyid tx rx
+					//RTL8211F
+					0x001cc916 0x2e 0x20
+					//YT8521
+					0x0000011a 0x24 0x21
+				>;
 	status = "okay";
 };
 
