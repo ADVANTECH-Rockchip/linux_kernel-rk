@@ -2943,6 +2943,8 @@ int stmmac_dvr_probe(struct device *device,
 	int val;
 	int delay_table_size;
 	u32 *delay_config;
+	u32 amp_100M;
+	u32 amp_1000M;
 #endif
 
 	ndev = alloc_etherdev(sizeof(struct stmmac_priv));
@@ -3109,10 +3111,12 @@ int stmmac_dvr_probe(struct device *device,
 			delay_table_size = val / sizeof(u32);
 			of_property_read_u32_array(device->of_node, "mac_delay",
 						   delay_config, delay_table_size);
-			for (i = 0; i+2 < delay_table_size; i+=3) {
+			for (i = 0; i+4 < delay_table_size; i+=5) {
 				if (priv->mii->phy_map[phy_id]->phy_id == delay_config[i]) {
 					plat_dat->tx_delay = delay_config[i+1];
 					plat_dat->rx_delay = delay_config[i+2];
+					amp_100M = delay_config[i+3];
+					amp_1000M = delay_config[i+4];
 					break;
 				}
 			}
@@ -3165,6 +3169,21 @@ int stmmac_dvr_probe(struct device *device,
 		priv->phydev = priv->mii->phy_map[phy_id];
 		INIT_DELAYED_WORK(&priv->work, stmmac_mdio_work_func);
 		mod_delayed_work(system_wq, &priv->work, msecs_to_jiffies(60));
+	} else if ((phy_id < PHY_MAX_ADDR) && (PHY_ID_YT8521 == priv->mii->phy_map[phy_id]->phy_id)) {
+		if(amp_100M > 0) {
+			/* write 0 to access UTP */
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_ADDR_OFFSET, 0xa000);
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_DATA, 0);
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_ADDR_OFFSET, 0x57);
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_DATA, amp_100M);
+		}
+		if(amp_1000M > 0) {
+			/* write 0 to access UTP */
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_ADDR_OFFSET, 0xa000);
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_DATA, 0);
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_ADDR_OFFSET, 0x51);
+			priv->mii->write(priv->mii, phy_id, REG_DEBUG_DATA, amp_1000M);
+		}
 	}
 
 	gdev = to_platform_device(device);

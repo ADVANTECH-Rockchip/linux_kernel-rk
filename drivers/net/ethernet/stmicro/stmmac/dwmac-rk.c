@@ -1839,6 +1839,7 @@ static int rk_gmac_probe(struct platform_device *pdev)
  	if((plat_dat->tx_delay >= 0) && (plat_dat->rx_delay >= 0)) {
 		bsp_priv->tx_delay = plat_dat->tx_delay;
 		bsp_priv->rx_delay = plat_dat->rx_delay;
+		dev_info(&pdev->dev, "new TX delay(0x%x),RX delay(0x%x).\n", bsp_priv->tx_delay, bsp_priv->rx_delay);
 		switch (bsp_priv->phy_iface) {
 		case PHY_INTERFACE_MODE_RGMII:
 			dev_info(&pdev->dev, "reinit for RGMII\n");
