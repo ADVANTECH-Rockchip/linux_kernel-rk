@@ -617,11 +617,11 @@
 	enable_phy_delay = <0>;
 	tx_delay = <0>;
 	rx_delay = <0>;
-	mac_delay = <	//phyid 		tx 	rx
+	mac_delay = <   //phyid     tx    rx    100M   1000M
 					//RTL8211F
-					0x001cc916 0x2e 0x20
+					0x001cc916 0x2e 0x20 0x00   0x00
 					//YT8521
-					0x0000011a 0x24 0x21
+					0x0000011a 0x24 0x21 0x2b4f 0x057f
 				>;
 	status = "okay";
 };
