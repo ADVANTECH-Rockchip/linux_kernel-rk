@@ -2881,7 +2881,10 @@ static void stmmac_mdio_work_func(struct work_struct *work)
 		phy_write(stmmac->phydev, 0x1f, 0x0d04);
 		val = phy_read(stmmac->phydev, 0x10);
 		if(val != REALTEK_8211F_PHY_LED)
+		{
 			phy_write(stmmac->phydev, 0x10, REALTEK_8211F_PHY_LED);
+			phy_write(stmmac->phydev, 0x11, 0x0000);
+		}
 		phy_write(stmmac->phydev, 0x1f, 0x0000);
 		mod_delayed_work(system_wq, &stmmac->work, msecs_to_jiffies(20));
 	}

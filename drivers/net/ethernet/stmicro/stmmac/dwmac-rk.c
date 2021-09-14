@@ -1646,6 +1646,7 @@ static int rtl8211f_phy_fixup(struct phy_device *phydev)
 	if (phydev->interface == PHY_INTERFACE_MODE_RGMII){
 		phy_write(phydev, 0x1f, 0x0d04);
 		phy_write(phydev, 0x10, 0x8910);
+		phy_write(phydev, 0x11, 0x0000);
 		phy_write(phydev, 0x1f, 0x0000);
 	}
 
