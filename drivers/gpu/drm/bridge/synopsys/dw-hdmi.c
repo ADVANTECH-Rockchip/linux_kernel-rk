@@ -2610,7 +2610,11 @@ static int dw_hdmi_connector_get_modes(struct drm_connector *connector)
 							       def_modes,
 							       31, i);
 			if (mode) {
+#ifdef CONFIG_ARCH_ADVANTECH
+				if (def_modes[i] == 16)
+#else
 				if (!i)
+#endif
 					mode->type = DRM_MODE_TYPE_PREFERRED;
 				drm_mode_probed_add(connector, mode);
 				ret++;
