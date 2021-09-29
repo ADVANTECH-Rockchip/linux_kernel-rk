@@ -2292,7 +2292,9 @@ static int stmmac_rx(struct stmmac_priv *priv, int limit)
 				print_pkt(skb->data, frame_len);
 			}
 
+#ifdef DROP_INVALID_PACKET
 			if (frame_len <= ETH_FRAME_LEN) {
+#endif
 				stmmac_rx_vlan(priv->dev, skb);
 
 				skb->protocol = eth_type_trans(skb, priv->dev);
@@ -2306,9 +2308,11 @@ static int stmmac_rx(struct stmmac_priv *priv, int limit)
 
 				priv->dev->stats.rx_packets++;
 				priv->dev->stats.rx_bytes += frame_len;
+#ifdef DROP_INVALID_PACKET
 			} else {
 				dev_kfree_skb(skb);
 			}
+#endif
 		}
 		entry = next_entry;
 	}
