@@ -690,7 +690,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&rgmii_16ma_pins &rgmii_phy_reset>;
 	enable_phy_delay = <0>;
-	tx_delay = <0x1c>;//from dvt board
+	tx_delay = <0x1f>;//from dvt board
 	//tx_delay = <0x2c>;//from pvt board
 	rx_delay = <0x1e>;
 	status = "okay";
@@ -1491,6 +1491,7 @@
 		opp-microvolt-L1 = <840000 840000 1250000>;
 		opp-microvolt-L2 = <840000 840000 1250000>;
 		opp-microvolt-L3 = <840000 840000 1250000>;
+		status = "disabled";
 	};
 	opp-600000000 {
 		opp-microvolt = <840000 840000 1250000>;
@@ -1498,6 +1499,7 @@
 		opp-microvolt-L1 = <840000 840000 1250000>;
 		opp-microvolt-L2 = <840000 840000 1250000>;
 		opp-microvolt-L3 = <840000 840000 1250000>;
+		status = "disabled";
 	};
 	opp-816000000 {
 		opp-microvolt = <850000 850000 1250000>;
