@@ -197,6 +197,10 @@ static int rs5c372_get_datetime(struct i2c_client *client, struct rtc_time *tm)
 
 	/* tm->tm_mon is zero-based */
 	tm->tm_mon = bcd2bin(rs5c->regs[RS5C372_REG_MONTH] & 0x1f) - 1;
+#ifdef CONFIG_ARCH_ADVANTECH
+	if(tm->tm_mon < 0)
+		tm->tm_mon = 0;
+#endif
 
 	/* year is 1900 + tm->tm_year */
 	tm->tm_year = bcd2bin(rs5c->regs[RS5C372_REG_YEAR]) + 100;
