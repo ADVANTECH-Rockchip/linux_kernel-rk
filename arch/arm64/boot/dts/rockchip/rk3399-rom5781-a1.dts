@@ -85,8 +85,8 @@
 		dsi_in_vopl = &dsi_in_vopl;
 		dsi1_in_vopb = &dsi1_in_vopb;
 		dsi1_in_vopl = &dsi1_in_vopl;
-		dsi_vcc = &vcc1v2_lvds;
-		dsi_vcc_io = &dsi_vdd_io;
+		//dsi_vcc = &vcc1v2_lvds;
+		//dsi_vcc_io = &dsi_vdd_io;
 		edp_backlight = &backlight0;
 		dsi_backlight = &backlight1;
 
@@ -304,6 +304,7 @@
 		status = "disabled";
 	};
 
+#if 0
 	dsi_vdd_io: dsi-vdd-io {
 		compatible = "regulator-fixed";
 		regulator-name = "dsi_vdd_io";
@@ -316,6 +317,7 @@
 		regulator-uboot-logo;
 		status = "disabled";
 	};
+#endif
 
 	vpd0: virtual-pd0 {
 		compatible = "linux,extcon-pd-virtual";
@@ -498,6 +500,7 @@
 		status = "okay";
 	};
 
+#if 0
 	vcc1v2_lvds: vcc1v2-lvds-regulator {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc1v2_lvds";
@@ -509,6 +512,7 @@
 		pinctrl-0 = <&vcc1v2_en>;
 		status = "disabled";
 	};
+#endif
 
 	vcc1v8_sata: vcc1v8-sata-regulator {
 		compatible = "regulator-fixed";
@@ -635,19 +639,19 @@
 // dsi
 &dsi {
 	pinctrl-names = "default";
-	pinctrl-0 = <&dsi_enable_h &dsi_reset_l>;
-	power-supply = <&vcc1v2_lvds>;
-	power-io-supply = <&dsi_vdd_io>;
-	power-gpios =<&gpio1 4 GPIO_ACTIVE_HIGH>;
-	power-io-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
-	enable-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
-	reset-gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
+	//pinctrl-0 = <&dsi_enable_h &dsi_reset_l>;
+	//power-supply = <&vcc1v2_lvds>;
+	//power-io-supply = <&dsi_vdd_io>;
+	//power-gpios =<&gpio1 4 GPIO_ACTIVE_HIGH>;
+	//power-io-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+	//enable-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+	//reset-gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
 	status = "disabled";
 
 	panel@0 {
 		compatible = "simple-panel-dsi";
 		reg = <0>;
-		backlight = <&backlight1>;
+		/*backlight = <&backlight1>;*/
 		power-supply = <&lvds_pwr_vcc>;
 		power-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
 
@@ -951,30 +955,6 @@
 		rockchip,camera-module-facing = "back";
 	};
 
-	ov5648: ov5648@36 {
-		compatible = "ovti,ov5648";
-		status = "disabled";
-		reg = <0x36>;
-		clocks = <&cru SCLK_CIF_OUT>;
-		clock-names = "xvclk";
-
-		reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
-		pwdn-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "rockchip,camera_default";
-		pinctrl-0 = <&cif_clkout>;
-		rockchip,camera-module-index = <0>;
-		rockchip,camera-module-facing = "back";
-		rockchip,camera-module-name = "default";
-		rockchip,camera-module-lens-name = "default";
-
-		/*port {
-			ucam_out0: endpoint {
-				remote-endpoint = <&mipi_in_ucam0>;
-				data-lanes = <1 2>;
-			};
-		};*/
-	};
-
 	ov8858: ov8858@36 {
 		compatible = "ovti,ov8858";
 		status = "okay";
@@ -1059,30 +1039,6 @@
 			#size-cells = <0>;
 			reg = <1>;
 
-			ov5648_multi_csi: ov5648-multi-csi@36 {
-				compatible = "ovti,ov5648";
-				status = "disabled";
-				reg = <0x36>;
-				clocks = <&cru SCLK_CIF_OUT>;
-				clock-names = "xvclk";
-
-				reset-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
-				pwdn-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
-				pinctrl-names = "rockchip,camera_default";
-				pinctrl-0 = <&cif_clkout>;
-				rockchip,camera-module-index = <0>;
-				rockchip,camera-module-facing = "back";
-				rockchip,camera-module-name = "default";
-				rockchip,camera-module-lens-name = "default";
-
-				/*port {
-					ucam_out1: endpoint {
-						remote-endpoint = <&mipi_in_ucam1>;
-						data-lanes = <1 2>;
-					};
-				};*/
-			};
-
 			vm149c: vm149c@0c {
 				compatible = "silicon touch,vm149c";
 				status = "okay";
@@ -1154,6 +1110,18 @@
 	status = "okay";
 	i2c-scl-rising-time-ns = <475>;
 	i2c-scl-falling-time-ns = <26>;
+	
+	LT9211:LT9211@2d {
+		compatible = "LT9211";
+		reg = <0x2d>;
+		status = "okay";
+		backlight = <&backlight1>;
+		reset_gpio = <&gpio1 24 GPIO_ACTIVE_HIGH>;
+		enable_gpio =<&gpio0 11 GPIO_ACTIVE_HIGH>;
+		
+		pinctrl-names = "default";
+		pinctrl-0 = <&dsi_enable_h &dsi_reset_l>;
+	};
 };
 
 &watchdog {
@@ -1921,18 +1889,22 @@
 	};
 
 	dsi-phy {
+	#if 0
 		dsi_pwr_vdd_io_h: dsi-pwr-vdd-io-h {
 			rockchip,pins = <0 11 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
+	#endif
 		dsi_enable_h: dsi-enable-h {
-			rockchip,pins = <0 2 RK_FUNC_GPIO &pcfg_pull_down>;
+			rockchip,pins = <0 11 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 		dsi_reset_l: dsi-reset-l {
 			rockchip,pins = <1 24 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
+	#if 0
 		vcc1v2_en: vcc1v2-en {
 			rockchip,pins =	<1 4 RK_FUNC_GPIO &pcfg_pull_down>; // GPIO1_A4 / VCC_1V2_EN
 		};
+	#endif
 	};
 
 	lvds-panel {
