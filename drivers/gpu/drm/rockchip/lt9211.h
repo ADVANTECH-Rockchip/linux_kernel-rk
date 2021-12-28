@@ -56,7 +56,12 @@ enum VideoFormat
 {
     video_800x480_60Hz_vic,
     video_1024x768_60Hz_vic,
+    video_1280x720_60Hz_vic,
+    video_1280x768_60Hz_vic,
+    video_1280x800_60Hz_vic,
+    video_1366x768_60Hz_vic,
     video_1920x1080_60Hz_vic,
+    video_1920x1200_60Hz_vic,
     video_none
 };
 

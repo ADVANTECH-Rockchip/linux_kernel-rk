@@ -56,10 +56,29 @@ enum VideoFormat Video_Format;
 #define MIPI_SETTLE_VALUE 0x0a //0x05  0x0a
 #define PCR_M_VALUE 0x17 //0x14 , for display quality
 
-                                          //hfp, hs, hbp,hact,htotal,vfp, vs, vbp, vact,vtotal,
-struct video_timing video_800x480_60Hz    ={200, 6, 50, 800,1056,20,4,4,480,508,33300};//for G070VW01
-struct video_timing video_1024x768_60Hz    ={300,10,10, 1024,1344,30,4,4,768,806,65000};//For G150XGE
-struct video_timing video_1920x1080_60Hz   ={150, 10, 20,1920,  2100,  20,  10,  20, 1080, 1130, 148500};
+#if 0
+                                          //hfp,   hs, hbp, hact,htotal,vfp,  vs, vbp, vact,vtotal,
+struct video_timing video_800x480_60Hz     ={200,   6,  50,  800, 1056,  20,   4,   4,  480,  508,  33300};
+struct video_timing video_1024x768_60Hz    ={300,  10,  10, 1024, 1344,  30,   4,   4,  768,  806,  65000};
+struct video_timing video_1280x720_60Hz    ={110,  40, 220, 1280, 1650,   5,   5,  20,  720,  750,  74250};
+struct video_timing video_1280x768_60Hz    ={ 64, 128, 192, 1280, 1664,   3,   7,  20,  768,  798,  79500};
+struct video_timing video_1280x800_60Hz    ={100,  10,  40, 1280, 1430,  40,  10,  20,  800,  870,  72000};
+struct video_timing video_1366x768_60Hz    ={ 26, 110, 110, 1366, 1592,  13,   6,  13,  768,  800,  81000};
+struct video_timing video_1920x1080_60Hz   ={150,  10,  20, 1920, 2100,  20,  10,  20, 1080, 1130, 148500};
+struct video_timing video_1920x1200_60Hz   ={ 48,  32,  80, 1920, 2080,   3,   6,  26, 1200, 1235, 154000};
+#endif
+
+struct video_timing g_video[] = 
+{
+    {200,   6,  50,  800, 1056,  20,   4,   4,  480,  508,  33300},  // 800x480
+    {300,  10,  10, 1024, 1344,  30,   4,   4,  768,  806,  65000},  // 1024x768
+    {110,  40, 220, 1280, 1650,   5,   5,  20,  720,  750,  74250},  // 1280x720
+    { 64, 128, 192, 1280, 1664,   3,   7,  20,  768,  798,  79500},  // 1280x768
+    {100,  10,  40, 1280, 1430,  40,  10,  20,  800,  870,  72000},  // 1280x800
+    { 26, 110, 110, 1366, 1592,  13,   6,  13,  768,  800,  81000},  // 1366x768
+    {150,  10,  20, 1920, 2100,  20,  10,  20, 1080, 1130, 148500},  // 1920x1080
+    { 48,  32,  80, 1920, 2080,   3,   6,  26, 1200, 1235, 154000},  // 1920x1200
+};
 
 
 typedef  struct LT9211{
@@ -78,7 +97,6 @@ u32 g_pclk_khz = 0;
 int g_LT9211_probe = 0;
 
 static void lt9211_power_on(LT9211_info_t* lt9211);
-extern char* rockchip_drm_get_screen_name(char* buf);
 
 static int LT9211_i2c_write_bytes(struct i2c_client *client,uint8_t *data,int len)
 {
@@ -288,6 +306,7 @@ static void LT9211_TimingSet(struct i2c_client *client)
     char fmt ;
     u32 pa_lpn = 0;
     char read_val=0,read_val1=0;
+    int i;
     lt9211_printk("LT9211 LT9211_TimingSet \n");
     mdelay(300);
     LT9211_mipi_write( client,0xff,0xd0);
@@ -312,6 +331,30 @@ static void LT9211_TimingSet(struct i2c_client *client)
     lt9211_printk("pa_lpn = 0x%x \n", pa_lpn);
 
     mdelay(100);
+    for(i = 0; i < video_none; i++)
+    {
+        if ((hact == g_video[i].hact ) &&( vact == g_video[i].vact ))
+        {
+            lt9211_printk("video_mode: %d*%d@60Hz.\n", hact, vact);
+            VideoFormat = i;
+            LT9211_SetVideoTiming(client,&g_video[i]);
+            if((hact >=1920 ) &&( vact >=1080 ))
+            {
+                LT9211_OutPutModde = OUTPUT_LVDS_2_PORT;
+                lt9211_printk("LT9211_OutPutModde = %d\n", LT9211_OutPutModde);
+            }
+            break;
+        }
+    }
+
+    if(i == video_none)
+    {
+        VideoFormat = video_none;
+        lt9211_printk("video_none \n");
+    }
+
+#if 0
+
     if ((hact == video_1024x768_60Hz.hact ) &&( vact == video_1024x768_60Hz.vact ))
     {
         lt9211_printk("video_mode: 1024*768@60Hz.\n");
@@ -334,6 +377,7 @@ static void LT9211_TimingSet(struct i2c_client *client)
         VideoFormat = video_none;
         lt9211_printk("video_none \n");
     }
+#endif
 }
 
 static void LT9211_MipiRxPll(struct i2c_client *client)
@@ -723,17 +767,8 @@ static int LT9211_probe(struct i2c_client *client, const struct i2c_device_id *i
     struct device *dev = &client->dev;
     struct device_node *backlight;
     g_client=client;
-    char* screen_name;
 
     printk(" mipi to lvds LT9211_probe!!!!!!!!!!!!\n");
-    screen_name = rockchip_drm_get_screen_name("lvds");
-    if(screen_name)
-    {
-        lt9211_printk("screen_name = %s\n", screen_name);
-        if(!memcmp("lvds-g215hvn01", screen_name, strlen(screen_name)))
-            LT9211_OutPutModde = OUTPUT_LVDS_2_PORT;
-        lt9211_printk("LT9211_OutPutModde = %d\n", LT9211_OutPutModde);
-    }
 
     LT9211 = devm_kzalloc(&client->dev, sizeof(*LT9211), GFP_KERNEL);
     if (!LT9211)
