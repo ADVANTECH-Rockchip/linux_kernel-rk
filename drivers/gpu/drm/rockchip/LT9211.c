@@ -26,6 +26,9 @@
 #include <linux/irqdomain.h>
 #include "lt9211.h"
 
+#include <linux/regulator/consumer.h>
+#include <dt-bindings/display/media-bus-format.h>
+
 /*******************************************************
 
    1、LT9211 IIC address is 0X5A(address+ RW Bit) , LT9211 chip ID is 0x18 0x01 0xe1;
@@ -89,6 +92,8 @@ typedef  struct LT9211{
     struct work_struct Lt9211_resume_work;
     struct work_struct Lt9211_suspend_work;
     struct backlight_device *backlight;
+    struct regulator *supply;
+    int bus_format;
 }LT9211_info_t;
 
 struct i2c_client *g_client;
@@ -500,12 +505,16 @@ static void LT9211_TxDigital(struct i2c_client *client)
         LT9211_mipi_write( client,0x44,0x41);
         LT9211_mipi_write( client,0x45,0x02); //pt1_tx_src_scl
 
-    #ifdef lvds_format_JEIDA
-        LT9211_mipi_write( client,0xff,0x85);
-        LT9211_mipi_write( client,0x59,0xd0); 
-        LT9211_mipi_write( client,0xff,0xd8);
-        LT9211_mipi_write( client,0x11,0x40);
-    #endif
+    //#ifdef lvds_format_JEIDA
+        if(g_LT9211->bus_format == MEDIA_BUS_FMT_RGB666_1X7X3_JEIDA ||
+           g_LT9211->bus_format == MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA)
+        {
+            LT9211_mipi_write( client,0xff,0x85);
+            LT9211_mipi_write( client,0x59,0xd0); 
+            LT9211_mipi_write( client,0xff,0xd8);
+            LT9211_mipi_write( client,0x11,0x40);
+        }
+    //#endif
     }
 }
 
@@ -677,7 +686,8 @@ static void LT9211_VideoCheckDebug(struct i2c_client *client)
 
 void lt9211_init(struct i2c_client *client)
 {
-    lt9211_power_on(g_LT9211);
+    int err = 0;
+    //lt9211_power_on(g_LT9211);
 
     LT9211_ChipID(client);
     LT9211_SystemInt(client);
@@ -688,6 +698,11 @@ void lt9211_init(struct i2c_client *client)
     LT9211_MipiPcr(client);
     LT9211_TxDigital(client);
     LT9211_TxPhy(client);
+    if(g_LT9211->supply)
+    {
+        err = regulator_enable(g_LT9211->supply);
+        lt9211_printk("regulator_enable supply err = %d\n",err);
+    }
     mdelay(10);
     LT9211_Txpll(client);
 
@@ -719,7 +734,32 @@ void lt9211_init(struct i2c_client *client)
     }
 }
 
+void lt9211_shutdown(struct i2c_client *client)
+{
+    int err;
+    lt9211_printk("LT9211_shutdown enter\n");
+
+    if (g_LT9211->backlight) 
+    {
+        g_LT9211->backlight->props.brightness = 0;
+        backlight_update_status(g_LT9211->backlight);
+    }
+    lt9211_printk("LT9211_shutdown close backlight\n");
+
+    lt9211_printk("LT9211_shutdown disable LT9211\n");
+    //gpio_direction_output(g_LT9211->reset_pin, 0);//1
+    gpio_direction_output(g_LT9211->enable_pin,0);
+    msleep(10);
+    if(g_LT9211->supply)
+    {
+        err = regulator_disable(g_LT9211->supply);
+        lt9211_printk("regulator_disable supply err = %d\n",err);
+    }
+
+}
+
 EXPORT_SYMBOL(lt9211_init);
+EXPORT_SYMBOL(lt9211_shutdown);
 EXPORT_SYMBOL(g_client);
 EXPORT_SYMBOL(g_LT9211_probe);
 
@@ -766,6 +806,7 @@ static int LT9211_probe(struct i2c_client *client, const struct i2c_device_id *i
     LT9211_info_t* LT9211 = NULL;
     struct device *dev = &client->dev;
     struct device_node *backlight;
+    int bus_format;
     g_client=client;
 
     printk(" mipi to lvds LT9211_probe!!!!!!!!!!!!\n");
@@ -775,6 +816,14 @@ static int LT9211_probe(struct i2c_client *client, const struct i2c_device_id *i
         return -ENOMEM;
 
     g_LT9211=LT9211;
+
+    LT9211->bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG;
+    if(!of_property_read_u32(client->dev.of_node, "bus-format",&bus_format))
+    {
+        LT9211->bus_format = bus_format;
+        lt9211_printk("bus format 0x%x\n", bus_format);
+    }
+
 
     if (!of_property_read_u32(client->dev.of_node, "delay_ms", &val))
         LT9211->m_rst_delay=val;
@@ -836,7 +885,14 @@ static int LT9211_probe(struct i2c_client *client, const struct i2c_device_id *i
         }
     }
 
-    //lt9211_power_on(LT9211);
+    LT9211->supply = devm_regulator_get(dev, "power");
+    if (IS_ERR(LT9211->supply))
+    {
+        ret = PTR_ERR(LT9211->supply);
+	dev_err(dev, "failed to get power regulator: %d\n", ret);
+    }
+
+    lt9211_power_on(LT9211);
     //lt9211_init(client);
     //if (LT9211->backlight) {
     //LT9211->backlight->props.power = FB_BLANK_UNBLANK;

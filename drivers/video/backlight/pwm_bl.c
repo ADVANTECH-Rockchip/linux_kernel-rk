@@ -50,6 +50,45 @@ struct pwm_bl_data {
 	void			(*exit)(struct device *);
 };
 
+#ifdef CONFIG_ARCH_ADVANTECH
+static void pwm_backlight_power_on(struct pwm_bl_data *pb, int brightness)
+{
+	int err;
+
+	if (pb->enabled)
+		return;
+
+	err = regulator_enable(pb->power_supply);
+	if (err < 0)
+		dev_err(pb->dev, "failed to enable power supply\n");
+
+	msleep(10);
+	pwm_enable(pb->pwm);
+	msleep(10);
+	if (pb->enable_gpio)
+		gpiod_set_value(pb->enable_gpio, 1);
+	pb->enabled = true;
+}
+
+static void pwm_backlight_power_off(struct pwm_bl_data *pb)
+{
+	if (!pb->enabled)
+		return;
+
+	if (pb->enable_gpio)
+	{
+		gpiod_set_value(pb->enable_gpio, 0);
+		msleep(10);
+	}
+
+	pwm_config(pb->pwm, 0, pb->period);
+	pwm_disable(pb->pwm);
+	msleep(10);
+
+	regulator_disable(pb->power_supply);
+	pb->enabled = false;
+}
+#else
 static void pwm_backlight_power_on(struct pwm_bl_data *pb, int brightness)
 {
 	int err;
@@ -75,20 +114,13 @@ static void pwm_backlight_power_off(struct pwm_bl_data *pb)
 
 	pwm_config(pb->pwm, 0, pb->period);
 	pwm_disable(pb->pwm);
-#ifndef CONFIG_ARCH_ADVANTECH
-	if (pb->enable_gpio)
-	{
-		gpiod_set_value(pb->enable_gpio, 0);
-		//msleep(10);
-	}
-#else
 	if (pb->enable_gpio)
 		gpiod_set_value(pb->enable_gpio, 0);
-#endif
 
 	regulator_disable(pb->power_supply);
 	pb->enabled = false;
 }
+#endif
 
 static int compute_duty_cycle(struct pwm_bl_data *pb, int brightness)
 {
