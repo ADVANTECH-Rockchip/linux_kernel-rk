@@ -63,8 +63,8 @@
 #include <dt-bindings/display/screen-timing/lcd-lvds-general.dtsi>
 
 / {
-	model = "ROM-5781 AKS0000000000 V10000 A1";
-	compatible = "rockchip,rk3399-rom5781-a1", "rockchip,rk3399";
+	model = "ROM-5780 AKS0000000000 V10000 B1";
+	compatible = "rockchip,rk3399-rom5780-b1", "rockchip,rk3399";
 
 	aliases {
 		edp = &edp;
