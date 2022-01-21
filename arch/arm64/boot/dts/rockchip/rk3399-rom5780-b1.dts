@@ -1292,7 +1292,7 @@
 	/delete-property/ dma-names;
 
 	spidev@0 {
-		compatible = "spidev";
+		compatible = "rockchip,spidev";
 		spi-max-frequency = <24000000>;
 		reg = <0>;
 		spi-cpha;
