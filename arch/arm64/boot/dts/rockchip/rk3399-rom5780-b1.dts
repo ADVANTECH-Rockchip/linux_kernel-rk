@@ -103,6 +103,7 @@
 		hdmi_sound = &hdmi_sound;
 		hdmi_i2s = &i2s2;
 		dp_phy = &tcphy0;
+		dp_sound = &dp_sound;
 
 		debug_console = &fiq_debugger;
 		ethernet0 = &gmac;
