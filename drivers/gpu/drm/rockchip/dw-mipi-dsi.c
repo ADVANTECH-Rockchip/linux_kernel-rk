@@ -721,8 +721,8 @@ static void dsi_external_bradge_power_on(struct dw_mipi_dsi *dsi)
 static void dsi_external_bradge_power_off(struct dw_mipi_dsi *dsi)
 {
 #ifdef CONFIG_ARCH_ADVANTECH
-	if(g_lt9211_init)
-		lt9211_shutdown(g_client);
+	//if(g_lt9211_init)
+	//	lt9211_shutdown(g_client);
 
 	if (dsi->reset_gpio)
 	{
