@@ -1292,14 +1292,13 @@
 	/delete-property/ dmas;
 	/delete-property/ dma-names;
 
-	m25p80@0 {
-		compatible = "jedec,spi-nor";
+	spidev@0 {
+		compatible = "rockchip,spidev";
 		spi-max-frequency = <24000000>;
 		reg = <0>;
-		//spi-cpol;
-		//spi-cpha;
+		spi-cpha;
+		spi-cpol;
 	};
-
 };
 
 &saradc {
