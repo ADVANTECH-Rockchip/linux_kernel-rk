@@ -240,6 +240,35 @@ static int rs5c372_set_datetime(struct i2c_client *client, struct rtc_time *tm)
 	return 0;
 }
 
+#ifdef CONFIG_ARCH_ADVANTECH
+static int rs5c372_set_default_datetime(struct i2c_client *client)
+{
+	struct rtc_time tm;
+	int ret;
+
+	//default time 2022.01.01 00:00:00
+	tm.tm_year = 122;
+	tm.tm_mon = 0;
+	tm.tm_mday = 1;
+	tm.tm_wday = 6;
+	tm.tm_hour = 0;
+	tm.tm_min = 0;
+	tm.tm_sec = 0;
+
+	ret = rtc_valid_tm(&tm);
+	if(ret == 0)
+	{
+		ret = rs5c372_set_datetime(client, &tm);
+	}
+	else
+	{
+		dev_err(&client->dev, "%s: default time format error\n", __func__);
+	}
+
+	return ret;
+}
+#endif
+
 #if defined(CONFIG_RTC_INTF_PROC) || defined(CONFIG_RTC_INTF_PROC_MODULE)
 #define	NEED_TRIM
 #endif
@@ -637,8 +666,16 @@ static int rs5c372_probe(struct i2c_client *client,
 		goto exit;
 	}
 
+#ifdef CONFIG_ARCH_ADVANTECH
+	if (rs5c372_get_datetime(client, &tm) < 0)
+	{
+		dev_warn(&client->dev, "clock init format error, set to default time\n");
+		rs5c372_set_default_datetime(client);
+	}
+#else
 	if (rs5c372_get_datetime(client, &tm) < 0)
 		dev_warn(&client->dev, "clock needs to be set\n");
+#endif
 
 	dev_info(&client->dev, "%s found, %s, driver version " DRV_VERSION "\n",
 			({ char *s; switch (rs5c372->type) {

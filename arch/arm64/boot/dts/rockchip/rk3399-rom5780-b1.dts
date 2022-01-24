@@ -1004,9 +1004,10 @@
 
 &i2c2 {
 	status = "okay";
-	s35390a: s35390a@30 {
-		compatible = "sii,s35390a";
-		reg = <0x30>;
+
+	rtc_bl5372: bl5372@32 {
+		compatible = "rs5c372a";
+		reg = <0x32>;
 	};
 
 	adv-wdt-i2c@29 {
