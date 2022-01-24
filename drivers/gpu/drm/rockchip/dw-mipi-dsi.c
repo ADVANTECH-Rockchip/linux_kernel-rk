@@ -30,6 +30,9 @@
 #include <uapi/linux/videodev2.h>
 #include <video/mipi_display.h>
 #include <asm/unaligned.h>
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/i2c.h>
+#endif
 
 #include "rockchip_drm_drv.h"
 #include "rockchip_drm_vop.h"
@@ -221,6 +224,14 @@
 /* Test Code: 0x19 (PLL Input and Loop Divider Ratios Control) */
 #define FEEDBACK_DIV_DEF_VAL_BYPASS	BIT(5)
 #define INPUT_DIV_DEF_VAL_BYPASS	BIT(4)
+
+#ifdef CONFIG_ARCH_ADVANTECH
+extern void lt9211_init(struct i2c_client *client);
+extern void lt9211_shutdown(struct i2c_client *client);
+extern struct i2c_client *g_client;
+extern int g_LT9211_probe;
+static int g_lt9211_init = 0;
+#endif
 
 enum soc_type {
 	PX30,
@@ -710,6 +721,9 @@ static void dsi_external_bradge_power_on(struct dw_mipi_dsi *dsi)
 static void dsi_external_bradge_power_off(struct dw_mipi_dsi *dsi)
 {
 #ifdef CONFIG_ARCH_ADVANTECH
+	if(g_lt9211_init)
+		lt9211_shutdown(g_client);
+
 	if (dsi->reset_gpio)
 	{
 		gpiod_direction_output(dsi->reset_gpio, 0);
@@ -1373,6 +1387,14 @@ static void dw_mipi_dsi_encoder_enable(struct drm_encoder *encoder)
 
 	if (dsi->panel)
 		drm_panel_enable(dsi->panel);
+
+#ifdef CONFIG_ARCH_ADVANTECH
+	if(g_LT9211_probe && !g_lt9211_init)
+	{
+		g_lt9211_init = 1;
+		lt9211_init(g_client);
+	}
+#endif
 }
 
 static int
