@@ -98,7 +98,7 @@
 		edp_vcc = &edp_vcc;
 		edp_bkl_vdd = &edp_bkl_vdd;
 		lvds_pwr_vcc = &lvds_pwr_vcc;
-		lvds_bkl_vcc = &lvds_bkl_vcc;
+		//lvds_bkl_vcc = &lvds_bkl_vcc;
 
 		edp_route = &route_edp;
 		dsi_route = &route_dsi;
@@ -293,19 +293,6 @@
 		pinctrl-0 = <&lvds_vdd_pwr>;
 		gpio = <&gpio2 5 GPIO_ACTIVE_HIGH>;
 		//startup-delay-us = <20000>;
-		enable-active-high;
-		//regulator-always-on;
-		regulator-boot-on;
-		regulator-uboot-logo;
-		status = "disabled";
-	};
-
-	lvds_bkl_vcc: lvds-bkl-vcc {
-		compatible = "regulator-fixed";
-		regulator-name = "lvds_bkl_vcc";
-		pinctrl-names = "default";
-		pinctrl-0 = <&lvds_bkl_pwr_on>;
-		gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		//regulator-always-on;
 		regulator-boot-on;
@@ -1863,9 +1850,6 @@
 	lvds-panel {
 		lvds_vdd_pwr: lvds-vdd-pwr {
 			rockchip,pins = <2 5 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		lvds_bkl_pwr_on: lvds-bkl-pwr-on {
-			rockchip,pins = <1 0 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 		lvds_bkl_pwm_en: lvds-bkl-pwm-en {
 			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;

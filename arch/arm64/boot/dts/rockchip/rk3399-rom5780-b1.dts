@@ -94,7 +94,7 @@
 		edp_vcc = &edp_vcc;
 		edp_bkl_vdd = &edp_bkl_vdd;
 		lvds_pwr_vcc = &lvds_pwr_vcc;
-		lvds_bkl_vcc = &lvds_bkl_vcc;
+		//lvds_bkl_vcc = &lvds_bkl_vcc;
 
 		edp_route = &route_edp;
 		dsi_route = &route_dsi;
@@ -293,6 +293,7 @@
 		status = "disabled";
 	};
 
+#if 0
 	lvds_bkl_vcc: lvds-bkl-vcc {
 		compatible = "regulator-fixed";
 		regulator-name = "lvds_bkl_vcc";
@@ -306,7 +307,6 @@
 		status = "disabled";
 	};
 
-#if 0
 	dsi_vdd_io: dsi-vdd-io {
 		compatible = "regulator-fixed";
 		regulator-name = "dsi_vdd_io";
@@ -967,7 +967,7 @@
 		reset-gpios = <&gpio1 9 GPIO_ACTIVE_HIGH>;
 		pwdn-gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;
 		pinctrl-names = "rockchip,camera_default";
-		pinctrl-0 = <&cif_clkout &cam0_default_pins>;
+		pinctrl-0 = <&cif_clkout>;
 		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
 		rockchip,camera-module-name = "CameraKing";
@@ -1059,7 +1059,7 @@
 				reset-gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
 				pwdn-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
 				pinctrl-names = "rockchip,camera_default";
-				pinctrl-0 = <&cif_clkout &cam0_default_pins>;
+				pinctrl-0 = <&cif_clkout>;
 				rockchip,camera-module-index = <0>;
 				rockchip,camera-module-facing = "back";
 				rockchip,camera-module-name = "CameraKing";
@@ -1913,9 +1913,11 @@
 		lvds_vdd_pwr: lvds-vdd-pwr {
 			rockchip,pins = <2 5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
+	#if 0
 		lvds_bkl_pwr_on: lvds-bkl-pwr-on {
 			rockchip,pins = <1 0 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
+	#endif
 		lvds_bkl_pwm_en: lvds-bkl-pwm-en {
 			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
