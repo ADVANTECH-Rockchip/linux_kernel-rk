@@ -1,0 +1,23 @@
+/*
+ * Advantech. mipi_tv080ll
+ *
+ */
+/ {
+	disp_timings: display-timings {
+		mipi_tv080ll: mipi-tv080ll {
+			clock-frequency = <68430000>;
+			hactive = <800>;
+			vactive = <1280>;
+			hback-porch = <25>;
+			hfront-porch = <25>;
+			vback-porch = <32>;
+			vfront-porch = <184>;
+			hsync-len = <14>;
+			vsync-len = <8>;
+			hsync-active = <1>;
+			vsync-active = <1>;
+			de-active = <0>;
+			pixelclk-active = <0>;
+		};
+	};
+};

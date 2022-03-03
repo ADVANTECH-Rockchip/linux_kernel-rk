@@ -1178,4 +1178,13 @@ config TOUCHSCREEN_GOODIX_RC03
 	  touch for rc03 on Rockchip platform, and your board-specific initialization
 	  code includes that in its table of IIC devices.
 	  If unsure, say N.
+
+config TOUCHSCREEN_FOCALTECH_RC03
+	tristate "Focaltech for rc03 support for rockchip platform"
+	depends on I2C && ARCH_ROCKCHIP
+	help
+	  Say Y here if you have a touchscreen interface using the goodix
+	  touch for rc03 on Rockchip platform, and your board-specific initialization
+	  code includes that in its table of IIC devices.
+	  If unsure, say N.
 endif
