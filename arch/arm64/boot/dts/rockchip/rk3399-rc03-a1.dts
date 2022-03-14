@@ -60,6 +60,7 @@
 
 // mipi panel
 #include <dt-bindings/display/screen-timing/lcd-mipi-tv080wxm.dtsi>
+#include <dt-bindings/display/screen-timing/lcd-mipi-tv080ll.dtsi>
 
 / {
 	model = "RC03 AKS0000000000 V10000";
@@ -161,6 +162,7 @@
 						&gpio4 26 GPIO_ACTIVE_LOW
 						&gpio1  9 GPIO_ACTIVE_LOW
 						&gpio1 10 GPIO_ACTIVE_LOW
+						&gpio2 6 GPIO_ACTIVE_HIGH
 						&gpio4 24 GPIO_ACTIVE_LOW>;
 
 	};
@@ -435,8 +437,8 @@
 
 &disp_timings {
 	native-mode = <&hdmi_default>;
-
-	use-dts-screen = <1>;
+	use-dts-node = <1>;
+	use-dts-screen = <0>;
 	prmry-screen = <&hdmi_default>;
 	extend-screen = <&mipi_tv080wxm>;
 };
@@ -887,6 +889,31 @@
 
 &i2c4 {
 	status = "okay";
+	focaltech@38{
+			compatible = "focaltech,fts";
+			reg = <0x38>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&goodix_ts>;
+
+			focaltech,reset-gpio = <&gpio1 22  GPIO_ACTIVE_LOW>;
+			focaltech,irq-gpio = <&gpio1 20 GPIO_ACTIVE_LOW>;
+			focaltech,max-touch-number = <10>;
+			focaltech,display-coords =  <0 0 800 1280>;
+
+			/*pinctrl-names = "pmx_ts_active","pmx_ts_suspend","pmx_ts_release";
+			pinctrl-0 = <&ts_int_active &ts_reset_active>;
+			pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+			pinctrl-2 = <&ts_release>;*/
+
+			/*
+			focaltech,have-key;
+			focaltech,key-number = <3>;
+			focaltech,keys = <139 102 158>;
+			focaltech,key-x-coords = <200 600 800>;
+			focaltech,key-y-coords = <2000 2000 2000>;
+			*/
+		};
+
 	goodix_ts@5d {
 		compatible = "goodix,gt9xx";
 		reg = <0x5d>;
@@ -1777,7 +1804,8 @@
 							<4 26	RK_FUNC_GPIO &pcfg_pull_down>, //wifi enable
 							<1 9	RK_FUNC_GPIO &pcfg_pull_up>,  //camera_io_0
 							<1 10	RK_FUNC_GPIO &pcfg_pull_up>, //camera_io_1
-							<4 24	RK_FUNC_GPIO &pcfg_pull_up>; //voice module reset
+							<4 24	RK_FUNC_GPIO &pcfg_pull_up>, //voice module reset
+							<2 6	RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
 		adv_switch:adv-switch {

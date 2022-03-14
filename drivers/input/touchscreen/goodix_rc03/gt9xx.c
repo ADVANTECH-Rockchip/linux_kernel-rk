@@ -2456,13 +2456,6 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
 #endif
     i2c_set_clientdata(client, ts);   
     ts->gtp_rawdiff_mode = 0;
-    ret = gtp_request_io_port(ts);
-    if (ret < 0)
-    {
-        GTP_ERROR("GTP request IO port failed.");
-        kfree(ts);
-        return ret;
-    }
     
 #if GTP_COMPATIBLE_MODE
     gtp_get_chip_type(ts);  
@@ -2480,6 +2473,16 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
     if (ret < 0)
     {
         GTP_ERROR("I2C communication ERROR!");
+        kfree(ts);
+        return -ENODEV;
+    }
+
+    ret = gtp_request_io_port(ts);
+    if (ret < 0)
+    {
+        GTP_ERROR("GTP request IO port failed.");
+        kfree(ts);
+        return ret;
     }
 
     ret = gtp_read_version(client, &version_info);
