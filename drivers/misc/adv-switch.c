@@ -84,10 +84,10 @@ static ssize_t switch_store_enable(struct device *dev, struct device_attribute *
 static DEVICE_ATTR(duty, 0664, switch_show_duty, switch_store_duty);
 static DEVICE_ATTR(period,0664, switch_show_period, switch_store_period);
 static DEVICE_ATTR(enable,0664, switch_show_enable, switch_store_enable);
+static bool state = true;
 
 static irqreturn_t adv_switch_handle(int irq, void *dev_id)
 {
-	static bool state = true;
 	 if(state)
 	 {
 		switch_set_state(&adv_switch.switch_state, 1);
@@ -117,6 +117,7 @@ static int adv_switch_probe(struct platform_device *pdev)
     struct device *dev = &pdev->dev;
     struct device_node *np;
 	int ret;
+	int edge;
     np = dev->of_node;
 	adv_switch.gpio = of_get_named_gpio_flags(np, "switch_gpio", 0, NULL);
 	if (gpio_is_valid(adv_switch.gpio))
@@ -130,6 +131,10 @@ static int adv_switch_probe(struct platform_device *pdev)
 		return -EFAULT;
 	}
 	adv_switch.irq = irq_of_parse_and_map(np,0);
+
+	edge = gpio_get_value(adv_switch.gpio);
+	if(edge == 1)
+		state = false;
 
 	ret = request_irq(adv_switch.irq,adv_switch_handle,IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING ,"adv_siwtch",&adv_switch);
 	if (ret)
