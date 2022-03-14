@@ -135,9 +135,9 @@
 		compatible = "misc-adv-gpio";
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_h &system_rst_h &m2_pwr_h>;
-		minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
-		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_HIGH>;
+		pinctrl-0 = <&system_rst_h &m2_pwr_h>;
+		/*minipcie-pwr-gpio = <&gpio2 9 GPIO_ACTIVE_LOW>;
+		minipcie-reset-gpio = <&gpio2 25 GPIO_ACTIVE_HIGH>;*/
 		/*system-reset-gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;*/
 		m2-pwr-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
 		timing-interval = <10>;
@@ -163,7 +163,10 @@
 						&gpio1  9 GPIO_ACTIVE_LOW
 						&gpio1 10 GPIO_ACTIVE_LOW
 						&gpio2 6 GPIO_ACTIVE_HIGH
-						&gpio4 24 GPIO_ACTIVE_LOW>;
+						&gpio4 24 GPIO_ACTIVE_LOW
+						&gpio2 9 GPIO_ACTIVE_LOW
+						&gpio2 25 GPIO_ACTIVE_HIGH
+						>;
 
 	};
 
@@ -1774,14 +1777,6 @@
 			rockchip,pins = <2 28 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
-		minipcie_pwr_h: minipcie-pwr-h {
-			rockchip,pins = <2 9 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-
-		minipcie_reset_h: minipcie-reset-h {
-			rockchip,pins = <2 25 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-
 		m2_pwr_h: m2-pwr-h {
 			rockchip,pins = <2 11 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
@@ -1805,7 +1800,9 @@
 							<1 9	RK_FUNC_GPIO &pcfg_pull_up>,  //camera_io_0
 							<1 10	RK_FUNC_GPIO &pcfg_pull_up>, //camera_io_1
 							<4 24	RK_FUNC_GPIO &pcfg_pull_up>, //voice module reset
-							<2 6	RK_FUNC_GPIO &pcfg_pull_down>;
+							<2 6	RK_FUNC_GPIO &pcfg_pull_down>, //mipi tv080ll power
+							<2 9	RK_FUNC_GPIO &pcfg_pull_up>, //minipcie-pwr
+							<2 25	RK_FUNC_GPIO &pcfg_pull_up>; //minipcie-reset
 		};
 
 		adv_switch:adv-switch {
