@@ -165,7 +165,7 @@
 						&gpio2 6 GPIO_ACTIVE_HIGH
 						&gpio4 24 GPIO_ACTIVE_LOW
 						&gpio2 9 GPIO_ACTIVE_LOW
-						&gpio2 25 GPIO_ACTIVE_HIGH
+						&gpio2 25 GPIO_ACTIVE_LOW
 						>;
 
 	};
