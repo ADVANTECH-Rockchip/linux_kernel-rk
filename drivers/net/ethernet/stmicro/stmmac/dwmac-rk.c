@@ -1806,6 +1806,26 @@ static int yt8521_phy_fixup(struct phy_device *dev)
 	if (ret < 0)
 		return ret;
 
+	/* enable phy syncE clock output to rgmii */
+	if(PHY_ID_YT8531S == dev->phy_id) {
+		ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
+		if (ret < 0)
+			return ret;
+		ret = phy_write(dev, REG_DEBUG_DATA, 0);
+		if (ret < 0)
+			return ret;
+		ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa012);
+		if (ret < 0)
+			return ret;
+		val = phy_read(dev, REG_DEBUG_DATA);
+		if (val < 0)
+			return val;
+		val = 0xd0;
+		ret = phy_write(dev, REG_DEBUG_DATA, val);
+		if (ret < 0)
+			return ret;
+	}
+
 	return 0;
 }
 #endif
@@ -1835,6 +1855,8 @@ static int rk_gmac_probe(struct platform_device *pdev)
 		return PTR_ERR(plat_dat);
 
 #ifdef CONFIG_ARCH_ADVANTECH
+	ret = phy_register_fixup_for_uid(PHY_ID_YT8531S, MOTORCOMM_PHY_ID_MASK,
+					yt8521_phy_fixup);
 	ret = phy_register_fixup_for_uid(PHY_ID_YT8521, MOTORCOMM_PHY_ID_MASK,
 					yt8521_phy_fixup);
 	/* register the PHY board fixup (for TI RTL8211F) */
