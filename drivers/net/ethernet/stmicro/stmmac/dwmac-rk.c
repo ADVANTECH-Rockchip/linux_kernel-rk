@@ -1658,6 +1658,10 @@ static int yt8521_phy_fixup(struct phy_device *dev)
 	int ret;
 	int val;
 
+	if (dev->interface != PHY_INTERFACE_MODE_RGMII){
+		return 0;
+	}
+
 	ret = phy_write(dev, REG_DEBUG_ADDR_OFFSET, 0xa000);
 	if (ret < 0)
 		return ret;
