@@ -443,7 +443,7 @@
 	use-dts-node = <1>;
 	use-dts-screen = <0>;
 	prmry-screen = <&hdmi_default>;
-	extend-screen = <&mipi_tv080wxm>;
+	extend-screen = <&mipi_tv080ll>;
 };
 
 &route_dsi{
@@ -540,6 +540,7 @@
 		0x001cc916 0x2c 0x1e 0x00   0x00
 		//YT8521
 		0x0000011a 0x22 0x1d 0x2b4f 0x057f
+		0x4f51e91a 0x22 0x1d 0x2b4f 0x057f
 		>;
 	status = "okay";
 };
@@ -832,6 +833,11 @@
 	s35390a: s35390a@30 {
 		compatible = "sii,s35390a";
 		reg = <0x30>;
+	};
+
+	rtc_bl5372: bl5372@32 {
+		compatible = "rs5c372a";
+		reg = <0x32>;
 	};
 };
 

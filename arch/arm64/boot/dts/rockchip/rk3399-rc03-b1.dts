@@ -48,7 +48,6 @@
 
 #include "rk3399-linux.dtsi"
 #include <dt-bindings/input/input.h>
-#include <dt-bindings/display/media-bus-format.h>
 
 //hdmi/dp dummy panel
 #include <dt-bindings/display/screen-timing/lcd-adv-dummy.dtsi>
@@ -87,7 +86,6 @@
 		dsi1_in_vopl = &dsi1_in_vopl;
 		//dsi_vcc = &vcc1v2_lvds;
 		//dsi_vcc_io = &dsi_vdd_io;
-		dsi_bradge = &LT9211;
 		//edp_backlight = &backlight0;
 		dsi_backlight = &backlight1;
 
@@ -138,7 +136,7 @@
 		status = "okay";
 		pinctrl-names = "default";
 		pinctrl-0 = <&system_rst_h &m2_pwr_h>;
-		system-reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+		/*system-reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;*/
 		m2-pwr-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
 		timing-interval = <10>;
 	};
@@ -446,7 +444,7 @@
 	use-dts-node = <1>;
 	use-dts-screen = <0>;
 	prmry-screen = <&hdmi_default>;
-	extend-screen = <&mipi_tv080wxm>;
+	extend-screen = <&mipi_tv080ll>;
 };
 
 &route_dsi{
@@ -867,14 +865,6 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <1>;
-
-			vm149c: vm149c@0c {
-				compatible = "silicon touch,vm149c";
-				status = "okay";
-				reg = <0x0c>;
-				rockchip,camera-module-index = <0>;
-				rockchip,camera-module-facing = "back";
-			};
 		};
 
 		i2c@2 {
@@ -905,22 +895,6 @@
 
 &i2c4 {
 	status = "okay";
-	i2c-scl-rising-time-ns = <475>;
-	i2c-scl-falling-time-ns = <26>;
-	
-	LT9211:LT9211@2d {
-		compatible = "LT9211";
-		reg = <0x2d>;
-		status = "disabled";
-		power-supply = <&lvds_pwr_vcc>;
-		backlight = <&backlight1>;
-		reset_gpio = <&gpio1 24 GPIO_ACTIVE_HIGH>;
-		enable_gpio =<&gpio0 11 GPIO_ACTIVE_HIGH>;
-		bus-format = <MEDIA_BUS_FMT_RGB888_1X7X4_SPWG>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&dsi_enable_h &dsi_reset_l>;
-	};
-
 	focaltech@38{
 		compatible = "focaltech,fts";
 		reg = <0x38>;
@@ -1170,12 +1144,12 @@
 	/delete-property/ dmas;
 	/delete-property/ dma-names;
 
-	m25p80@0 {
-		compatible = "jedec,spi-nor";
+	spidev@0 {
+		compatible = "rockchip,spidev";
 		spi-max-frequency = <24000000>;
 		reg = <0>;
-		//spi-cpol;
-		//spi-cpha;
+		spi-cpha;
+		spi-cpol;
 	};
 };
 
@@ -1711,33 +1685,36 @@
 	};
 
 	dsi-phy {
-	#if 0
 		dsi_pwr_vdd_io_h: dsi-pwr-vdd-io-h {
 			rockchip,pins = <0 11 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
-	#endif
-		dsi_enable_h: dsi-enable-h {
-			rockchip,pins = <0 11 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		dsi_reset_l: dsi-reset-l {
-			rockchip,pins = <1 24 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-	#if 0
 		vcc1v2_en: vcc1v2-en {
 			rockchip,pins =	<1 4 RK_FUNC_GPIO &pcfg_pull_down>; // GPIO1_A4 / VCC_1V2_EN
 		};
-	#endif
+	};
+
+	cam_pins {
+		cam0_default_pins: cam0-default-pins {
+			rockchip,pins =
+				<1 2 RK_FUNC_GPIO &pcfg_pull_down>,
+				<1 3 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		cam0_sleep_pins: cam0-sleep-pins {
+			rockchip,pins =
+				<1 2 RK_FUNC_GPIO &pcfg_pull_down>,
+				<1 3 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
 	};
 
 	lvds-panel {
 		lvds_vdd_pwr: lvds-vdd-pwr {
-			rockchip,pins = <2 5 RK_FUNC_GPIO &pcfg_pull_down>;
+			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
-		lvds_bkl_pwr_on: lvds-bkl-pwr-on {
-			rockchip,pins = <1 0 RK_FUNC_GPIO &pcfg_pull_down>;
+		lvds_reset_l: lvds-reset-l {
+			rockchip,pins = <2 10 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 		lvds_bkl_pwm_en: lvds-bkl-pwm-en {
-			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;
+			rockchip,pins = <2 5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 
@@ -1805,7 +1782,7 @@
 		};
 
 		system_rst_h: system-rst-h {
-			rockchip,pins = <1 6 RK_FUNC_GPIO &pcfg_pull_down>;
+			rockchip,pins = <4 28 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
 		adv_export_gpios: adv-export-gpios {
