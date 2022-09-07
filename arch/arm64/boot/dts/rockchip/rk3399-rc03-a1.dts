@@ -440,8 +440,7 @@
 
 &disp_timings {
 	native-mode = <&hdmi_default>;
-	use-dts-node = <1>;
-	use-dts-screen = <0>;
+	use-dts-screen = <1>;
 	prmry-screen = <&hdmi_default>;
 	extend-screen = <&mipi_tv080ll>;
 };
