@@ -52,9 +52,6 @@
 //hdmi/dp dummy panel
 #include <dt-bindings/display/screen-timing/lcd-adv-dummy.dtsi>
 
-// edp panel
-#include <dt-bindings/display/screen-timing/lcd-edp-general.dtsi>
-
 // mipi-dsi to lvds panel
 #include <dt-bindings/display/screen-timing/lcd-g070vw01.dtsi>
 
@@ -225,21 +222,6 @@
 		default-brightness-level = <200>;
 	};
 
-	//edp vcc
-	edp_vcc: edp-vcc {
-		compatible = "regulator-fixed";
-		regulator-name = "edp_vcc";
-		pinctrl-names = "default";
-		pinctrl-0 = <&edp_vdd_pwr>;
-		gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
-		startup-delay-us = <100000>;
-		enable-active-high;
-		//regulator-always-on;
-		regulator-boot-on;
-		//regulator-uboot-logo;
-		status = "disabled";
-	};
-
 	//lvds vcc
 	lvds_pwr_vcc: lvds-pwr-vcc {
 		compatible = "regulator-fixed";
@@ -253,32 +235,6 @@
 		regulator-boot-on;
 		regulator-uboot-logo;
 		status = "okay";
-	};
-
-	lvds_bkl_vcc: lvds-bkl-vcc {
-		compatible = "regulator-fixed";
-		regulator-name = "lvds_bkl_vcc";
-		//pinctrl-names = "default";
-		//pinctrl-0 = <&lvds_bkl_pwr_on>;
-		gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		//regulator-always-on;
-		regulator-boot-on;
-		regulator-uboot-logo;
-		status = "disabled";
-	};
-
-	dsi_vdd_io: dsi-vdd-io {
-		compatible = "regulator-fixed";
-		regulator-name = "dsi_vdd_io";
-		pinctrl-names = "default";
-		pinctrl-0 = <&dsi_pwr_vdd_io_h>;
-		gpio = <&gpio0 11 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
-		regulator-boot-on;
-		regulator-uboot-logo;
-		status = "disabled";
 	};
 
 	rt5660-sound {
@@ -1672,26 +1628,7 @@
 		};
 	};
 
-	edp {
-		edp_hpd: edp-hpd {
-			rockchip,pins =
-				<4 28 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	edp-panel {
-		edp_vdd_pwr: edp-vdd-pwr {
-			rockchip,pins = <2 4 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		edp_bkl_en: edp-bkl-en {
-			rockchip,pins = <2 6 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-	};
-
 	dsi-phy {
-		dsi_pwr_vdd_io_h: dsi-pwr-vdd-io-h {
-			rockchip,pins = <0 11 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
 		vcc1v2_en: vcc1v2-en {
 			rockchip,pins =	<1 4 RK_FUNC_GPIO &pcfg_pull_down>; // GPIO1_A4 / VCC_1V2_EN
 		};
