@@ -159,7 +159,6 @@
 						&gpio4 26 GPIO_ACTIVE_LOW
 						&gpio1  9 GPIO_ACTIVE_LOW
 						&gpio1 10 GPIO_ACTIVE_LOW
-						&gpio2 6 GPIO_ACTIVE_HIGH
 						&gpio4 24 GPIO_ACTIVE_LOW
 						&gpio2 9 GPIO_ACTIVE_LOW
 						&gpio2 25 GPIO_ACTIVE_LOW
@@ -229,6 +228,20 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&lvds_vdd_pwr>;
 		gpio = <&gpio4 30 GPIO_ACTIVE_HIGH>;
+		//startup-delay-us = <20000>;
+		enable-active-high;
+		//regulator-always-on;
+		regulator-boot-on;
+		regulator-uboot-logo;
+		status = "okay";
+	};
+	
+	mipi_tv080ll_vcc: mipi-tv080ll-vcc {
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_tv080ll_vcc";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_tv080ll_pwr>;
+		gpio = <&gpio2 6 GPIO_ACTIVE_HIGH>;
 		//startup-delay-us = <20000>;
 		enable-active-high;
 		//regulator-always-on;
@@ -451,7 +464,7 @@
 		dsi1;
 		reg = <0>;
 		backlight = <&backlight1>;
-		power-supply = <&lvds_pwr_vcc>;
+		power-supply = <&mipi_tv080ll_vcc>;
 		reset-gpios = <&gpio2 10 GPIO_ACTIVE_HIGH>;
 		reset-delay-ms=<200>;
 
@@ -1648,6 +1661,9 @@
 	};
 
 	lvds-panel {
+		mipi_tv080ll_pwr: mipi-tv080ll-pwr {
+			rockchip,pins = <2 6	RK_FUNC_GPIO &pcfg_pull_down>;
+		};
 		lvds_vdd_pwr: lvds-vdd-pwr {
 			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
@@ -1742,7 +1758,6 @@
 							<1 9	RK_FUNC_GPIO &pcfg_pull_up>,  //camera_io_0
 							<1 10	RK_FUNC_GPIO &pcfg_pull_up>, //camera_io_1
 							<4 24	RK_FUNC_GPIO &pcfg_pull_up>, //voice module reset
-							<2 6	RK_FUNC_GPIO &pcfg_pull_down>, //mipi tv080ll power
 							<2 9	RK_FUNC_GPIO &pcfg_pull_up>, //minipcie-pwr
 							<2 25	RK_FUNC_GPIO &pcfg_pull_up>; //minipcie-reset
 		};
