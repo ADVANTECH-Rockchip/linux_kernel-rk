@@ -14,7 +14,9 @@
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
 #include <linux/etherdevice.h>
+#include <linux/if_arp.h>
 #include <linux/mii.h>
+#include <linux/rtnetlink.h>
 #include <linux/usb.h>
 #include <linux/usb/cdc.h>
 #include <linux/usb/usbnet.h>
@@ -48,10 +50,104 @@
 struct qmi_wwan_state {
 	struct usb_driver *subdriver;
 	atomic_t pmcount;
-	unsigned long unused;
+	unsigned long flags;
 	struct usb_interface *control;
 	struct usb_interface *data;
 };
+
+enum qmi_wwan_quirks {
+	QMI_WWAN_QUIRK_DTR = 1 << 0,	/* needs "set DTR" request */
+};
+
+enum qmi_wwan_flags {
+	QMI_WWAN_FLAG_RAWIP = 1 << 0,
+};
+
+static void qmi_wwan_netdev_setup(struct net_device *net)
+{
+	struct usbnet *dev = netdev_priv(net);
+	struct qmi_wwan_state *info = (void *)&dev->data;
+
+	if (info->flags & QMI_WWAN_FLAG_RAWIP) {
+		net->header_ops      = NULL;  /* No header */
+		net->type            = ARPHRD_NONE;
+		net->hard_header_len = 0;
+		net->addr_len        = 0;
+		net->flags           = IFF_POINTOPOINT | IFF_NOARP | IFF_MULTICAST;
+		netdev_dbg(net, "mode: raw IP\n");
+	} else if (!net->header_ops) { /* don't bother if already set */
+		ether_setup(net);
+		netdev_dbg(net, "mode: Ethernet\n");
+	}
+
+	/* recalculate buffers after changing hard_header_len */
+	usbnet_change_mtu(net, net->mtu);
+}
+
+static ssize_t raw_ip_show(struct device *d, struct device_attribute *attr, char *buf)
+{
+	struct usbnet *dev = netdev_priv(to_net_dev(d));
+	struct qmi_wwan_state *info = (void *)&dev->data;
+
+	return sprintf(buf, "%c\n", info->flags & QMI_WWAN_FLAG_RAWIP ? 'Y' : 'N');
+}
+
+static ssize_t raw_ip_store(struct device *d,  struct device_attribute *attr, const char *buf, size_t len)
+{
+	struct usbnet *dev = netdev_priv(to_net_dev(d));
+	struct qmi_wwan_state *info = (void *)&dev->data;
+	bool enable;
+	int ret;
+
+	if (strtobool(buf, &enable))
+		return -EINVAL;
+
+	/* no change? */
+	if (enable == (info->flags & QMI_WWAN_FLAG_RAWIP))
+		return len;
+
+	if (!rtnl_trylock())
+		return restart_syscall();
+
+	/* we don't want to modify a running netdev */
+	if (netif_running(dev->net)) {
+		netdev_err(dev->net, "Cannot change a running device\n");
+		ret = -EBUSY;
+		goto err;
+	}
+
+	/* let other drivers deny the change */
+	ret = call_netdevice_notifiers(NETDEV_PRE_TYPE_CHANGE, dev->net);
+	ret = notifier_to_errno(ret);
+	if (ret) {
+		netdev_err(dev->net, "Type change was refused\n");
+		goto err;
+	}
+
+	if (enable)
+		info->flags |= QMI_WWAN_FLAG_RAWIP;
+	else
+		info->flags &= ~QMI_WWAN_FLAG_RAWIP;
+	qmi_wwan_netdev_setup(dev->net);
+	call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE, dev->net);
+	ret = len;
+err:
+	rtnl_unlock();
+	return ret;
+}
+
+static DEVICE_ATTR_RW(raw_ip);
+
+static struct attribute *qmi_wwan_sysfs_attrs[] = {
+	&dev_attr_raw_ip.attr,
+	NULL,
+};
+
+static struct attribute_group qmi_wwan_sysfs_attr_group = {
+	.name = "qmi",
+	.attrs = qmi_wwan_sysfs_attrs,
+};
+
 
 /* default ethernet address used by the modem */
 static const u8 default_modem_addr[ETH_ALEN] = {0x02, 0x50, 0xf3};
@@ -81,6 +177,8 @@ static const u8 buggy_fw_addr[ETH_ALEN] = {0x00, 0xa0, 0xc6, 0x00, 0x00, 0x00};
 static int qmi_wwan_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 {
 	__be16 proto;
+	struct qmi_wwan_state *info = (void *)&dev->data;
+	bool rawip = info->flags & QMI_WWAN_FLAG_RAWIP;
 
 	/* This check is no longer done by usbnet */
 	if (skb->len < dev->net->hard_header_len)
@@ -94,15 +192,26 @@ static int qmi_wwan_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 		proto = htons(ETH_P_IPV6);
 		break;
 	case 0x00:
+		if (rawip)
+			return 0;
 		if (is_multicast_ether_addr(skb->data))
 			return 1;
 		/* possibly bogus destination - rewrite just in case */
 		skb_reset_mac_header(skb);
 		goto fix_dest;
 	default:
+		if (rawip)
+			return 0;
 		/* pass along other packets without modifications */
 		return 1;
 	}
+
+	if (rawip) {
+		skb->dev = dev->net; /* normally set by eth_type_trans */
+		skb->protocol = proto;
+		return 1;
+	}
+
 	if (skb_headroom(skb) < ETH_HLEN)
 		return 0;
 	skb_push(skb, ETH_HLEN);
@@ -294,6 +403,7 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 		dev->net->dev_addr[0] &= 0xbf;	/* clear "IP" bit */
 	}
 	dev->net->netdev_ops = &qmi_wwan_netdev_ops;
+	dev->net->sysfs_groups[0] = &qmi_wwan_sysfs_attr_group;
 err:
 	return status;
 }
@@ -381,6 +491,16 @@ static const struct driver_info	qmi_wwan_info = {
 	.rx_fixup       = qmi_wwan_rx_fixup,
 };
 
+static const struct driver_info	qmi_wwan_info_quirk_dtr = {
+	.description	= "WWAN/QMI device",
+	.flags		= FLAG_WWAN | FLAG_SEND_ZLP,
+	.bind		= qmi_wwan_bind,
+	.unbind		= qmi_wwan_unbind,
+	.manage_power	= qmi_wwan_manage_power,
+	.rx_fixup       = qmi_wwan_rx_fixup,
+	.data           = QMI_WWAN_QUIRK_DTR,
+};
+
 #define HUAWEI_VENDOR_ID	0x12D1
 
 /* map QMI/wwan function by a fixed interface number */
@@ -395,6 +515,19 @@ static const struct driver_info	qmi_wwan_info = {
 /* Gobi 2000/3000 QMI/wwan interface number is 0 according to qcserial */
 #define QMI_GOBI_DEVICE(vend, prod) \
 	QMI_FIXED_INTF(vend, prod, 0)
+
+/* Many devices have QMI and DIAG functions which are distinguishable
+ * from other vendor specific functions by class, subclass and
+ * protocol all being 0xff. The DIAG function has exactly 2 endpoints
+ * and is silently rejected when probed.
+ *
+ * This makes it possible to match dynamically numbered QMI functions
+ * as seen on e.g. many Quectel modems.
+ */
+#define QMI_MATCH_FF_FF_FF(vend, prod) \
+	USB_DEVICE_AND_INTERFACE_INFO(vend, prod, USB_CLASS_VENDOR_SPEC, \
+				      USB_SUBCLASS_VENDOR_SPEC, 0xff), \
+	.driver_info = (unsigned long)&qmi_wwan_info_quirk_dtr
 
 static const struct usb_device_id products[] = {
 	/* 1. CDC ECM like devices match on the control interface */
@@ -500,6 +633,10 @@ static const struct usb_device_id products[] = {
 		USB_DEVICE_AND_INTERFACE_INFO(0x03f0, 0x581d, USB_CLASS_VENDOR_SPEC, 1, 7),
 		.driver_info = (unsigned long)&qmi_wwan_info,
 	},
+	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0125)},	/* Quectel EC25, EC20 R2.0  Mini PCIe */
+	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0306)},	/* Quectel EP06/EG06/EM06 */
+	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0512)},	/* Quectel EG12/EM12 */
+	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0800)},	/* Quectel RM500Q-GL */
 
 	/* 3. Combined interface devices matching on interface number */
 	{QMI_FIXED_INTF(0x0408, 0xea42, 4)},	/* Yota / Megafon M100-1 */
