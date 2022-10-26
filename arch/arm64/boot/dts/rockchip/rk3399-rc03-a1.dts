@@ -1143,6 +1143,14 @@
 	status = "okay";
 	rockchip,u2phy-tuning;
 
+	rockchip,phy-table =
+		//reg      vaule
+		<0x4488 0x04000400
+		 0x44bc 0x04000400
+		 0x44c0 0x02000000
+		 0x44bc 0x03e00200>;
+
+
 	u2phy0_otg: otg-port {
 		vbus-supply = <&vcc_otg_vbus>;
 		status = "okay";

@@ -38,6 +38,10 @@
 #include <linux/usb/otg.h>
 #include <linux/wakelock.h>
 
+#ifdef CONFIG_ARCH_ADVANTECH
+#include <linux/slab.h>
+#endif
+
 #define BIT_WRITEABLE_SHIFT	16
 #define SCHEDULE_DELAY		(60 * HZ)
 #define OTG_SCHEDULE_DELAY	(1 * HZ)
@@ -2048,6 +2052,12 @@ static int rk3399_usb2phy_tuning(struct rockchip_usb2phy *rphy)
 {
 	struct device_node *node = rphy->dev->of_node;
 	int ret = 0;
+#ifdef CONFIG_ARCH_ADVANTECH
+	int val, table_size;;
+	u32 *phy_config;
+	int i;
+	u32 reg, reg_val;
+#endif
 
 	if (rphy->phy_cfg->reg == 0xe450) {
 		/*
@@ -2096,6 +2106,25 @@ static int rk3399_usb2phy_tuning(struct rockchip_usb2phy *rphy)
 
 #ifdef CONFIG_ARCH_ADVANTECH
 		ret |= regmap_write(rphy->grf, 0x4488,0xffff8ee3);
+		if (of_get_property(node, "rockchip,phy-table", &val)) {
+			phy_config = kmalloc(val, GFP_KERNEL);
+			if (!phy_config) {
+				dev_err(rphy->dev, "kmalloc phy table failed\n");
+				return -ENOMEM;
+			}
+
+			table_size = val / sizeof(u32);
+			of_property_read_u32_array(node, "rockchip,phy-table",
+						   phy_config, table_size);
+			for (i = 0; i+1 < table_size; i+=2) {
+				reg = phy_config[i];
+				reg_val = phy_config[i+1];
+				printk("u2phy0 tuning  reg = 0x%04x, val = 0x%08x \n", reg, reg_val);
+				ret |= regmap_write(rphy->grf, reg, reg_val);
+			}
+
+			kfree(phy_config);
+		}
 #endif
 	} else {
 		/*
