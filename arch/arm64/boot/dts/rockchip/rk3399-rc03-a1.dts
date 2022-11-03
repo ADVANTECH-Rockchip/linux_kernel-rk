@@ -181,7 +181,8 @@
 	backlight1: backlight1 {
 		status = "okay";
 		compatible = "pwm-backlight";
-		enable-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+		power-supply = <&lvds_bkl_vcc>;
+		enable-gpios = <&gpio4 30 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&lvds_bkl_pwm_en>;
 		pwms = <&pwm1 0 50000 0>;
@@ -227,7 +228,7 @@
 		regulator-name = "lvds_pwr_vcc";
 		pinctrl-names = "default";
 		pinctrl-0 = <&lvds_vdd_pwr>;
-		gpio = <&gpio4 30 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio2 6 GPIO_ACTIVE_HIGH>;
 		//startup-delay-us = <20000>;
 		enable-active-high;
 		//regulator-always-on;
@@ -235,14 +236,13 @@
 		regulator-uboot-logo;
 		status = "okay";
 	};
-	
-	mipi_tv080ll_vcc: mipi-tv080ll-vcc {
+
+	lvds_bkl_vcc: lvds-bkl-vcc {
 		compatible = "regulator-fixed";
-		regulator-name = "mipi_tv080ll_vcc";
+		regulator-name = "lvds_bkl_vcc";
 		pinctrl-names = "default";
-		pinctrl-0 = <&mipi_tv080ll_pwr>;
-		gpio = <&gpio2 6 GPIO_ACTIVE_HIGH>;
-		//startup-delay-us = <20000>;
+		pinctrl-0 = <&lvds_bkl_pwr_en>;
+		gpio = <&gpio2 5 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		//regulator-always-on;
 		regulator-boot-on;
@@ -464,7 +464,7 @@
 		dsi1;
 		reg = <0>;
 		backlight = <&backlight1>;
-		power-supply = <&mipi_tv080ll_vcc>;
+		power-supply = <&lvds_pwr_vcc>;
 		reset-gpios = <&gpio2 10 GPIO_ACTIVE_HIGH>;
 		reset-delay-ms=<200>;
 
@@ -1669,16 +1669,16 @@
 	};
 
 	lvds-panel {
-		mipi_tv080ll_pwr: mipi-tv080ll-pwr {
-			rockchip,pins = <2 6	RK_FUNC_GPIO &pcfg_pull_down>;
-		};
 		lvds_vdd_pwr: lvds-vdd-pwr {
-			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;
+			rockchip,pins = <2 6 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 		lvds_reset_l: lvds-reset-l {
 			rockchip,pins = <2 10 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 		lvds_bkl_pwm_en: lvds-bkl-pwm-en {
+			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		lvds_bkl_pwr_en: lvds-bkl-pwr-en {
 			rockchip,pins = <2 5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
