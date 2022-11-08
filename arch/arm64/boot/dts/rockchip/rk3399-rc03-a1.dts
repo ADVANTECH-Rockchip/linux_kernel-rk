@@ -60,7 +60,7 @@
 #include <dt-bindings/display/screen-timing/lcd-mipi-tv080ll.dtsi>
 
 / {
-	model = "RC03 AKS0000000000 V10000";
+	model = "RC03 AKS0000000000 V10000 A1";
 	compatible = "rockchip,rk3399-rc03-a1", "rockchip,rk3399";
 
 	aliases {
