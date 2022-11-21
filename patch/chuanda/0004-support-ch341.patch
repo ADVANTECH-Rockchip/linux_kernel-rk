@@ -1,0 +1,13 @@
+diff --git a/arch/arm64/configs/rk3399_chuanda_defconfig b/arch/arm64/configs/rk3399_chuanda_defconfig
+index 06dd37d3c..5e4469000 100644
+--- a/arch/arm64/configs/rk3399_chuanda_defconfig
++++ b/arch/arm64/configs/rk3399_chuanda_defconfig
+@@ -3492,7 +3492,7 @@ CONFIG_USB_SERIAL_GENERIC=y
+ # CONFIG_USB_SERIAL_AIRCABLE is not set
+ # CONFIG_USB_SERIAL_ARK3116 is not set
+ # CONFIG_USB_SERIAL_BELKIN is not set
+-# CONFIG_USB_SERIAL_CH341 is not set
++CONFIG_USB_SERIAL_CH341=y
+ # CONFIG_USB_SERIAL_WHITEHEAT is not set
+ # CONFIG_USB_SERIAL_DIGI_ACCELEPORT is not set
+ CONFIG_USB_SERIAL_CP210X=y
