@@ -16,10 +16,47 @@
 #include <linux/of_gpio.h>
 #include <linux/of.h>
 #include <linux/of_platform.h>
+#include <linux/device.h>
 
 #define MISC_ADV_GPIO_MODNAME		"misc-adv-gpio"
 static int pm_reset_gpio=-1;
 static bool pm_reset_gpio_active;
+
+static int  minipcie_reset_gpio=-1;
+static bool  minipcie_reset_active;
+
+
+static ssize_t minipcie_reset_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	printk("mini pcie reset minipcie_reset_gpio = %d\n", minipcie_reset_gpio);
+	if (gpio_is_valid(minipcie_reset_gpio))
+	{
+		if(minipcie_reset_active)
+			gpio_request_one(minipcie_reset_gpio, 
+                        GPIOF_OUT_INIT_HIGH, "minipcie 4g reset gpio");
+		else
+			gpio_request_one(minipcie_reset_gpio, 
+                        GPIOF_OUT_INIT_LOW, "minipcie 4g reset gpio");
+	}
+
+	if (gpio_is_valid(minipcie_reset_gpio))
+	{
+		printk("mini pcie reset minipcie_reset_active = %d\n", minipcie_reset_active);
+		gpio_direction_output(minipcie_reset_gpio, minipcie_reset_active);
+	}
+
+	mdelay(200);
+	if (gpio_is_valid(minipcie_reset_gpio))
+	{
+		printk("mini pcie reset minipcie_reset_active = %d\n", !minipcie_reset_active);
+		gpio_direction_output(minipcie_reset_gpio, !minipcie_reset_active);
+		gpio_free(minipcie_reset_gpio);
+	}
+
+    return count;
+}
+
+static DEVICE_ATTR(minipcie_reset, S_IWUSR|S_IWGRP, NULL, minipcie_reset_store);
 
 void pm_adv_reboot(void)
 {
@@ -39,7 +76,6 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
     enum of_gpio_flags flags;
     int  minipcie_pwr_gpio;
     int  m2_reset_gpio;
-	int  minipcie_reset_gpio;
 	int  m2_pwr_gpio;
 	int  lan2_reset_gpio;
 	int  wlan_enable_gpio;
@@ -162,6 +198,12 @@ static int misc_adv_gpio_probe(struct platform_device *pdev)
 		else
 			gpio_request_one(pm_reset_gpio, 
                         GPIOF_OUT_INIT_HIGH, "system reset gpio");
+	}
+
+	if (device_create_file(dev, &dev_attr_minipcie_reset))
+	{
+        dev_err(dev, "sys file creation failed\n");
+        return -ENODEV;
 	}
 
 	return 0;
