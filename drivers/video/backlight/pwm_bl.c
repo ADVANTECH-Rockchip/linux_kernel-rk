@@ -336,6 +336,9 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 			initial_blank = FB_BLANK_POWERDOWN;
 		else
 		#ifdef CONFIG_ARCH_ADVANTECH
+		if(pb->dft_enable)
+			gpiod_direction_output(pb->enable_gpio, 1);
+		else
 			gpiod_direction_output(pb->enable_gpio, 0);
 		#else
 			gpiod_direction_output(pb->enable_gpio, 1);
