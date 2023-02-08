@@ -21,12 +21,16 @@ MODULE_PARM_DESC(early_enable,
 
 static int timer_flag = 0;
 struct delayed_work adv_delay_work;
+static u32 early_enable_dts = 0;
 
 static void adv_delay_work_handler(struct work_struct *work)
 {
 	if(timer_flag == 0)
 	{
-		kernel_restart("backup");
+		if(early_enable)
+			kernel_restart("backup");
+		else
+			kernel_restart("none");
 	}
 }
 
@@ -64,8 +68,15 @@ static struct class *cls;
 static int adv_timer_init(void)
 {
 	struct device *mydev;
+	struct device_node *node=NULL;
 
-	if (early_enable)
+	node = of_find_node_by_name(node, "adv-bootprocess");
+	if(node)
+	{
+		of_property_read_u32(node, "enable", &early_enable_dts);
+	}
+
+	if (early_enable || early_enable_dts)
 	{
 		major=register_chrdev(0,"timer_flag", &adv_timer_ops);
 		cls=class_create(THIS_MODULE, "adv_bootprocess_class");
@@ -88,7 +99,7 @@ static int adv_timer_init(void)
  
 static void adv_timer_exit(void)
 {
-	if (early_enable)
+	if (early_enable || early_enable_dts)
 	{
 		device_destroy(cls, MKDEV(major,0));
 		class_destroy(cls);
