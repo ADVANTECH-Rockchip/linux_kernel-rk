@@ -591,6 +591,10 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(0x2C7C, 0x6000) }, /* Quectel EC200/UC200 */
 	{ .match_flags = USB_DEVICE_ID_MATCH_VENDOR, .idVendor = 0x2C7C }, /* Match All Quectel Modules */
 #endif
+#if 1 // Added for N58
+	{ USB_DEVICE(0x2949, 0x7401) },
+	{ USB_DEVICE(0x2949, 0x7402) },
+#endif
 	{ USB_DEVICE(0x1286, 0x4e3c) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
@@ -2089,6 +2093,18 @@ static int option_probe(struct usb_serial *serial,
 				return -ENODEV;
 		}
 	}
+#endif
+
+#if 1 // Added for N58
+	if (serial->dev->descriptor.idVendor == 0x2949 &&
+		serial->dev->descriptor.idProduct == 0x7401 &&
+		serial->interface->cur_altsetting->desc.bInterfaceNumber == 1)
+	return -ENODEV;
+
+	if (serial->dev->descriptor.idVendor == 0x2949 &&
+		serial->dev->descriptor.idProduct == 0x7402 &&
+		serial->interface->cur_altsetting->desc.bInterfaceNumber == 1)
+	return -ENODEV;
 #endif
 
 	/* Never bind to the CD-Rom emulation interface	*/
