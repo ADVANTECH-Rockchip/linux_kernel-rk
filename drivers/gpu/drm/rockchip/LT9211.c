@@ -232,8 +232,7 @@ static void LT9211_MipiRxPhy(struct i2c_client *client)
     LT9211_mipi_write( client, 0x17, 0x0c);
     LT9211_mipi_write( client, 0x1d, 0x0c);
 
-    LT9211_mipi_write( client, 0x0a, 0xf7);
-    LT9211_mipi_write( client, 0x0b, 0x77);
+   
 #ifdef _Mipi_PortA_ 
     /*port a*/
     LT9211_mipi_write( client, 0x07, 0x9f); //port clk enable  ��ֻ��Portbʱ,porta��lane0 clkҪ�򿪣�
@@ -266,17 +265,11 @@ static void LT9211_MipiRxDigital(struct i2c_client *client)
     LT9211_mipi_write( client,0x30,0x8f); //mipirx HL swap
 #endif
 
-    LT9211_mipi_write( client,0xff,0xD8);
-#ifdef _Mipi_PortA_
-    LT9211_mipi_write( client,0x16,0x00); //mipirx HL swap 
-#endif
-
-#ifdef _Mipi_PortB_
-    LT9211_mipi_write( client,0x16,0x80); //mipirx HL swap
-#endif
+    LT9211_mipi_write( client,0xff,0x82);
+    LT9211_mipi_write( client,0x23,0x02); 
 
     LT9211_mipi_write( client,0xff,0xd0);
-    LT9211_mipi_write( client,0x43,0x12); //rpta mode enable,ensure da_mlrx_lptx_en=0
+    LT9211_mipi_write( client,0x00,0x00); 
 
     LT9211_mipi_write( client,0x02,0x0a); //mipi rx controller	//settleֵ
 }
@@ -445,9 +438,9 @@ static void LT9211_MipiPcr(struct i2c_client *client)
     LT9211_mipi_write(client,0x2b,0xa0); //stable out
     mdelay(100);
     LT9211_mipi_write(client,0xff,0xd0);   //enable HW pcr_m
-    pcr_m = LT9211_read(client, 0x26);
-    pcr_m &= 0x7f;
-    LT9211_mipi_write(client,0x26,pcr_m);
+   
+    LT9211_mipi_write(client,0x26,0x97);
+    LT9211_mipi_write(client,0x26,0x17);
     LT9211_mipi_write(client,0x27,0x0f);
 
     LT9211_mipi_write(client,0xff,0x81);  //pcr reset
@@ -488,11 +481,11 @@ static void LT9211_TxDigital(struct i2c_client *client)
         LT9211_mipi_write( client,0x5b,0xaa);
         if( LT9211_OutPutModde == OUTPUT_LVDS_2_PORT )
         {
-            LT9211_mipi_write( client,0x5c,0x01);	//lvdstx port sel 01:dual;00:single
+            LT9211_mipi_write( client,0x5c,0x03);	//lvdstx port sel 01:dual;00:single
         }
         else
         {
-            LT9211_mipi_write( client,0x5c,0x01);
+            LT9211_mipi_write( client,0x5c,0x00);
         }
         LT9211_mipi_write( client,0x88,0x50);
         LT9211_mipi_write( client,0xa1,0x77); 
@@ -531,7 +524,7 @@ static void LT9211_TxPhy(struct i2c_client *client)
         }
         else
         {
-            LT9211_mipi_write( client,0x3b,0xb8);
+            LT9211_mipi_write( client,0x3b,0x38);
         }
         // HDMI_WriteI2C_Byte(0x3b,0xb8); //dual port lvds enable
         LT9211_mipi_write( client,0x3e,0x92); 
@@ -706,21 +699,7 @@ void lt9211_init(struct i2c_client *client)
     mdelay(10);
     LT9211_Txpll(client);
 
-    if(LT9211_OutPutModde == OUTPUT_LVDS_2_PORT)
-    {
-        LT9211_mipi_write(client, 0xff,0x81);
-        LT9211_mipi_write(client, 0x20,0xFB); 
-        LT9211_mipi_write(client, 0x20,0xFF); 
-
-        LT9211_mipi_write(client, 0xff,0x81);
-        LT9211_mipi_write(client, 0x20,0xF1); 
-        LT9211_mipi_write(client, 0x20,0xFF); 
-
-        LT9211_mipi_write(client,0xff,0x81);
-        LT9211_mipi_write(client,0x0D,0xfB); 
-        mdelay(5);
-        LT9211_mipi_write(client,0x0D,0xff); 
-    }
+  
 
 #ifdef LT9211_DEBUG
     LT9211_ClockCheckDebug(client);
