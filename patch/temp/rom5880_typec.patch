@@ -1,0 +1,132 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-rom5780-b1.dts b/arch/arm64/boot/dts/rockchip/rk3399-rom5780-b1.dts
+index da8d76165..a363b1d07 100755
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rom5780-b1.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rom5780-b1.dts
+@@ -69,8 +69,8 @@
+ 	aliases {
+ 		edp = &edp;
+ 		hdmi = &hdmi;
+-		dp = &cdn_dp;
+-		vpd = &vpd0;
++//		dp = &cdn_dp;
++//		vpd = &vpd0;
+ 		dsi = &dsi;
+ 		dsi1 = &dsi1;
+ 
+@@ -118,7 +118,7 @@
+ 	};
+ 
+ 	adv-bootprocess {
+-		enable = <1>;
++		enable = <0>;
+ 	};
+ 
+ 	rk_key: rockchip-key {
+@@ -336,7 +336,7 @@
+ 		vpd,init-ss = <0>;
+ 		/* 0: dfp, 1: ufp, 2: dp 3: dp/ufp */
+ 		vpd,init-mode = <2>;
+-		status = "okay";
++		status = "disabled";
+ 	};
+ 
+ 	rt5640-sound {
+@@ -450,6 +450,7 @@
+ 		regulator-max-microvolt = <3300000>;
+ 	};
+ 
++#if 0
+ 	vcc_otg_vbus: otg-vbus-regulator {
+ 		compatible = "regulator-fixed";
+ 		gpio = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+@@ -460,6 +461,7 @@
+ 		regulator-max-microvolt = <5000000>;
+ 		enable-active-high;
+ 	};
++#endif
+ 
+ 	vcc5v0_sys: vcc5v0-sys {
+ 		compatible = "regulator-fixed";
+@@ -627,12 +629,21 @@
+ };
+ 
+ // dp
++#if 0
+ &cdn_dp {
+ 	status = "okay";
+ 	extcon = <&vpd0>;
+ 	//phys = <&tcphy0_dp>;
+ 	dp_vop_sel = <1>;
+ };
++#endif
++
++&cdn_dp {
++	status = "okay";
++	extcon = <&fusb0>;
++	phys = <&tcphy0_dp>;
++};
++
+ 
+ &dp_in_vopb {
+ 	status = "disabled";
+@@ -1131,6 +1142,16 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&dsi_enable_h &dsi_reset_l>;
+ 	};
++	
++	fusb0: fusb30x@22 {
++		compatible = "fairchild,fusb302";
++		reg = <0x22>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&fusb0_int>;
++		int-n-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
++		vbus-5v-gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
++		status = "okay";
++	};
+ };
+ 
+ &watchdog {
+@@ -1313,7 +1334,7 @@
+ 
+ //DP
+ &tcphy0 {
+-	extcon = <&vpd0>;
++	extcon = <&fusb0>;
+ 	status = "okay";
+ };
+ 
+@@ -1324,10 +1345,11 @@
+ 
+ &u2phy0 {
+ 	status = "okay";
++	extcon = <&fusb0>;
+ 	rockchip,u2phy-tuning;
+ 
+ 	u2phy0_otg: otg-port {
+-		vbus-supply = <&vcc_otg_vbus>;
++//		vbus-supply = <&vcc_otg_vbus>;
+ 		status = "okay";
+ 	};
+ 
+@@ -1345,7 +1367,7 @@
+ };
+ 
+ &usbdrd3_0 {
+-	extcon = <&u2phy0>;
++	extcon = <&fusb0>;
+ 	status = "okay";
+ };
+ 
+@@ -1879,6 +1901,12 @@
+ 				<0 3 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO0_A3 / USB0_EN_OC_1V8#
+ 		};
+ 	};
++	
++	fusb30x {
++		fusb0_int: fusb0-int {
++			rockchip,pins = <1 2 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++	};
+ 
+ 	edp {
+ 		edp_hpd: edp-hpd {
