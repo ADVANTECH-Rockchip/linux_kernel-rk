@@ -960,6 +960,17 @@
 	};
 };
 
+&i2c2 {
+        status = "okay";
+        i2c-scl-rising-time-ns = <300>;
+        i2c-scl-falling-time-ns = <15>;
+        ds1339: rtc@68 {
+                compatible = "dallas,ds1339";
+                trickle-resistor-ohms = <250>;
+                reg = <0x68>;
+        };
+};
+
 &i2c4 {
 	status = "okay";
 	i2c-scl-rising-time-ns = <475>;
