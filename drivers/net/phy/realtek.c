@@ -29,6 +29,7 @@
 #define RTL8211F_PAGE_SELECT	0x1f
 #define RTL8211F_TX_DELAY	0x100
 
+#ifdef CONFIG_ARCH_ADVANTECH
 #define RTL8211FS_FIBER_ESR		0x0F
 #define RTL8211FS_SERDES_SSR_PAGE	0xdf0
 #define RTL8211FS_SERDES_SSR		0x10
@@ -38,6 +39,7 @@
 #define RTL8211FS_FIBER_100M_MASK	0x10
 #define RTL8211F_MODE_COPPER		0
 #define RTL8211FS_MODE_FIBER		1
+#endif
 
 MODULE_DESCRIPTION("Realtek PHY driver");
 MODULE_AUTHOR("Johnson Leung");
@@ -125,6 +127,7 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	return 0;
 }
 
+#ifdef CONFIG_ARCH_ADVANTECH
 static int rtl8211f_mode(struct phy_device *phydev)
 {
     u16 val;
@@ -143,20 +146,20 @@ static int rtl8211f_read_status(struct phy_device *phydev)
 	int fiber_state;
 
 	if(rtl8211f_mode(phydev) == RTL8211FS_MODE_FIBER) {
-		phydev->pause = 1;
-		phydev->asym_pause = 0;
-		phydev->speed = SPEED_10;
-		phydev->duplex = DUPLEX_HALF;
-		phydev->lp_advertising = 0;
-		
 		err = phy_write(phydev, RTL8211F_PAGE_SELECT, RTL8211FS_SERDES_SSR_PAGE);
 		if (err)
 			return err;
-		
+
 		fiber_state = phy_read(phydev, RTL8211FS_SERDES_SSR);
 		err = phy_write(phydev, RTL8211F_PAGE_SELECT, 0);
 		if (err)
 			return err;
+
+		phydev->pause = 0;
+		phydev->asym_pause = 0;
+		phydev->speed = SPEED_10;
+		phydev->duplex = DUPLEX_HALF;
+		phydev->lp_advertising = ADVERTISED_1000baseT_Full | ADVERTISED_100baseT_Full | ADVERTISED_Autoneg;
 
 		if (fiber_state & RTL8211FS_FIBER_LINK_MASK) {
 			phydev->link = 1;
@@ -169,11 +172,12 @@ static int rtl8211f_read_status(struct phy_device *phydev)
 			}
 		} else
 			phydev->link = 0;
-		
+
 		return 0;
 	} else
 		return genphy_read_status(phydev);
 }
+#endif
 
 static struct phy_driver realtek_drvs[] = {
 	{
@@ -226,6 +230,18 @@ static struct phy_driver realtek_drvs[] = {
 		.phy_id		= 0x001cc916,
 		.name		= "RTL8211F Gigabit Ethernet",
 		.phy_id_mask	= 0x001fffff,
+		.features       = PHY_GBIT_FEATURES,
+		.flags          = PHY_HAS_INTERRUPT,
+		.config_aneg    = &genphy_config_aneg,
+#ifndef CONFIG_ARCH_ADVANTECH
+		.config_init    = &rtl8211f_config_init,
+		.read_status    = &genphy_read_status,
+#else
+		.config_init	= genphy_config_init,
+		.read_status	= rtl8211f_read_status,
+#endif
+		.ack_interrupt  = &rtl8211f_ack_interrupt,
+		.config_intr    = &rtl8211f_config_intr,
 #if 0
 		.features	= PHY_GBIT_FEATURES | SUPPORTED_MII |
 			      SUPPORTED_AUI | SUPPORTED_FIBRE |
@@ -235,14 +251,6 @@ static struct phy_driver realtek_drvs[] = {
 		.read_status	= rtl8211f_read_status,
 		.aneg_done	= genphy_aneg_done,
 		.soft_reset	= genphy_no_soft_reset,
-#else
-		.features       = PHY_GBIT_FEATURES,
-		.flags          = PHY_HAS_INTERRUPT,
-		.config_aneg    = &genphy_config_aneg,
-		.config_init    = &rtl8211f_config_init,
-		.read_status    = &genphy_read_status,
-		.ack_interrupt  = &rtl8211f_ack_interrupt,
-		.config_intr    = &rtl8211f_config_intr,
 #endif
 		.suspend	= genphy_suspend,
 		.resume		= genphy_resume,
