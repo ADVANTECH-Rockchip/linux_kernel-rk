@@ -30,6 +30,7 @@
 #define RTL8211F_TX_DELAY	0x100
 
 #ifdef CONFIG_ARCH_ADVANTECH
+#define RTL8211FS_FIBER_ANLPAR		0x05
 #define RTL8211FS_FIBER_ESR		0x0F
 #define RTL8211FS_SERDES_SSR_PAGE	0xdf0
 #define RTL8211FS_SERDES_SSR		0x10
@@ -39,6 +40,7 @@
 #define RTL8211FS_FIBER_100M_MASK	0x10
 #define RTL8211F_MODE_COPPER		0
 #define RTL8211FS_MODE_FIBER		1
+static int lastlink = 0;
 #endif
 
 MODULE_DESCRIPTION("Realtek PHY driver");
@@ -140,40 +142,144 @@ static int rtl8211f_mode(struct phy_device *phydev)
         return RTL8211F_MODE_COPPER;
 }
 
+static int rtl8211f_config_advert(struct phy_device *phydev)
+{
+	u32 advertise;
+	int anlpar, anlpar_partner, oldadv, adv, bmsr;
+	int err, changed = 0;
+
+	/* Only allow advertising what this PHY supports */
+	phydev->advertising &= phydev->supported;
+	advertise = phydev->advertising;
+
+	/* Setup standard advertisement */
+	anlpar = phy_read(phydev, RTL8211FS_FIBER_ANLPAR);
+	if (anlpar < 0)
+		return anlpar;
+
+	adv = phy_read(phydev, MII_ADVERTISE);
+	if (adv < 0)
+		return adv;
+
+	oldadv = adv;
+
+	adv = (anlpar & 0xFFF) & adv;
+	if (adv != oldadv) {
+		err = phy_write(phydev, MII_ADVERTISE, adv);
+
+		if (err < 0)
+			return err;
+		changed = 1;
+	}
+
+	bmsr = phy_read(phydev, MII_BMSR);
+	if (bmsr < 0)
+		return bmsr;
+
+	/* Per 802.3-2008, Section 22.2.4.2.16 Extended status all
+	 * 1000Mbits/sec capable PHYs shall have the BMSR_ESTATEN bit set to a
+	 * logical 1.
+	 */
+	if (!(bmsr & BMSR_ESTATEN))
+		return changed;
+
+	/* Configure gigabit if it's supported */
+	adv = phy_read(phydev, MII_CTRL1000);
+	if (adv < 0)
+		return adv;
+
+	oldadv = adv;
+	adv &= ~(ADVERTISE_1000FULL | ADVERTISE_1000HALF);
+
+	if (phydev->supported & (SUPPORTED_1000baseT_Half |
+				 SUPPORTED_1000baseT_Full)) {
+		adv |= ethtool_adv_to_mii_ctrl1000_t(advertise);
+	}
+
+	if (adv != oldadv)
+		changed = 1;
+
+	err = phy_write(phydev, MII_CTRL1000, adv);
+	if (err < 0)
+		return err;
+
+	return changed;
+}
+
+static int rtl8211f_config_aneg(struct phy_device *phydev)
+{
+	int result;
+
+	if (AUTONEG_ENABLE != phydev->autoneg)
+		return genphy_setup_forced(phydev);
+
+	result = rtl8211f_config_advert(phydev);
+	if (result < 0) /* error */
+		return result;
+	if (result == 0) {
+		/* Advertisement hasn't changed, but maybe aneg was never on to
+		 * begin with?  Or maybe phy was isolated?
+		 */
+		int ctl = phy_read(phydev, MII_BMCR);
+
+		if (ctl < 0)
+			return ctl;
+
+		if (!(ctl & BMCR_ANENABLE) || (ctl & BMCR_ISOLATE))
+			result = 1; /* do restart aneg */
+	}
+
+	/* Only restart aneg if we are advertising something different
+	 * than we were before.
+	 */
+	if (result > 0)
+		result = genphy_restart_aneg(phydev);
+
+	return result;
+}
+
 static int rtl8211f_read_status(struct phy_device *phydev)
 {
 	int err;
 	int fiber_state;
 
+	/* Update the link, but return if there was an error */
+	err = genphy_update_link(phydev);
+	if (err)
+		return err;
+
 	if(rtl8211f_mode(phydev) == RTL8211FS_MODE_FIBER) {
-		err = phy_write(phydev, RTL8211F_PAGE_SELECT, RTL8211FS_SERDES_SSR_PAGE);
-		if (err)
-			return err;
+		if (lastlink != (phydev->link)) {
+			lastlink = phydev->link;
+			err = phy_write(phydev, RTL8211F_PAGE_SELECT, RTL8211FS_SERDES_SSR_PAGE);
+			if (err)
+				return err;
 
-		fiber_state = phy_read(phydev, RTL8211FS_SERDES_SSR);
-		err = phy_write(phydev, RTL8211F_PAGE_SELECT, 0);
-		if (err)
-			return err;
+			fiber_state = phy_read(phydev, RTL8211FS_SERDES_SSR);
+			err = phy_write(phydev, RTL8211F_PAGE_SELECT, 0);
+			if (err)
+				return err;
 
-		phydev->pause = 0;
-		phydev->asym_pause = 0;
-		phydev->speed = SPEED_10;
-		phydev->duplex = DUPLEX_HALF;
-		phydev->lp_advertising = ADVERTISED_1000baseT_Full | ADVERTISED_100baseT_Full | ADVERTISED_Autoneg;
+			phydev->pause = 0;
+			phydev->asym_pause = 0;
+			phydev->speed = SPEED_10;
+			phydev->duplex = DUPLEX_HALF;
+			phydev->lp_advertising = ADVERTISED_1000baseT_Full | ADVERTISED_100baseT_Full | ADVERTISED_Autoneg;
 
-		if (fiber_state & RTL8211FS_FIBER_LINK_MASK) {
-			phydev->link = 1;
-			if (fiber_state & RTL8211FS_FIBER_1000M_MASK) {
-				phydev->speed = SPEED_1000;
-				phydev->duplex = DUPLEX_FULL;
-			} else if(fiber_state & RTL8211FS_FIBER_100M_MASK) {
-				phydev->speed = SPEED_100;
-				phydev->duplex = DUPLEX_FULL;
-			}
-		} else
-			phydev->link = 0;
+			if (fiber_state & RTL8211FS_FIBER_LINK_MASK) {
+				phydev->link = 1;
+				if (fiber_state & RTL8211FS_FIBER_1000M_MASK) {
+					phydev->speed = SPEED_1000;
+					phydev->duplex = DUPLEX_FULL;
+				} else if(fiber_state & RTL8211FS_FIBER_100M_MASK) {
+					phydev->speed = SPEED_100;
+					phydev->duplex = DUPLEX_FULL;
+				}
+			} else
+				phydev->link = 0;
 
-		return 0;
+			return 0;
+		}
 	} else
 		return genphy_read_status(phydev);
 }
@@ -232,7 +338,7 @@ static struct phy_driver realtek_drvs[] = {
 		.phy_id_mask	= 0x001fffff,
 		.features       = PHY_GBIT_FEATURES,
 		.flags          = PHY_HAS_INTERRUPT,
-		.config_aneg    = &genphy_config_aneg,
+		.config_aneg    = rtl8211f_config_aneg,
 #ifndef CONFIG_ARCH_ADVANTECH
 		.config_init    = &rtl8211f_config_init,
 		.read_status    = &genphy_read_status,
