@@ -52,7 +52,7 @@
 #include <dt-bindings/display/screen-timing/lcd-adv-dummy.dtsi>
 
 / {
-	model = "DS-211hx AKS0000000000 V10000 A1";
+	model = "DS-211 AKS0000000000 V10000 A1";
 	compatible = "rockchip,rk3399-ds211hx", "rockchip,rk3399";
 
 	aliases {
@@ -109,9 +109,9 @@
 		compatible = "misc-adv-gpio";
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&minipcie_pwr_h &minipcie_reset_l &m2_pwr_h &system_rst_h &adv_gpios>;
-		minipcie-pwr-gpio = <&gpio2 3 GPIO_ACTIVE_HIGH>;
-		minipcie-reset-gpio = <&gpio3 29 GPIO_ACTIVE_LOW>;
+		pinctrl-0 = <&m2_pwr_h &system_rst_h>;
+		//minipcie-pwr-gpio = <&gpio2 3 GPIO_ACTIVE_HIGH>;
+		//minipcie-reset-gpio = <&gpio3 29 GPIO_ACTIVE_LOW>;
 		m2-pwr-gpio = <&gpio4 21 GPIO_ACTIVE_HIGH>;
 		//m2-reset-gpio = <&gpio2 28 GPIO_ACTIVE_LOW>;
 		system-reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
@@ -125,8 +125,6 @@
 		enable-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
 		power-supply = <&edp_bkl_vdd>;
 		power-gpios = <&gpio3 30 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&edp_bkl_en>;
 		pwms = <&pwm0 0 50000 0>;
 		brightness-levels = <
 			  0   1   2   3   4   5   6   7
@@ -171,8 +169,6 @@
 		power-supply = <&lvds_bkl_vcc>;
 		power-gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
 		enable-gpios = <&gpio4 30 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&lvds_bkl_pwm_en>;
 		pwms = <&pwm1 0 50000 0>;
 		brightness-levels = <
 			  0   1   2   3   4   5   6   7
@@ -214,8 +210,6 @@
 	edp_vcc: edp-vcc {
 		compatible = "regulator-fixed";
 		regulator-name = "edp_vcc";
-		pinctrl-names = "default";
-		pinctrl-0 = <&edp_vdd_pwr>;
 		gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
 		startup-delay-us = <100000>;
 		enable-active-high;
@@ -228,8 +222,6 @@
 	edp_bkl_vdd: edp-bkl-vdd {
 		compatible = "regulator-fixed";
 		regulator-name = "edp_bkl_vdd";
-		pinctrl-names = "default";
-		pinctrl-0 = <&edp_bkl_vdd_pin>;
 		gpio = <&gpio3 30 GPIO_ACTIVE_HIGH>;
 		startup-delay-us = <10000>;
 		enable-active-high;
@@ -263,8 +255,6 @@
 	lvds_pwr_vcc: lvds-pwr-vcc {
 		compatible = "regulator-fixed";
 		regulator-name = "lvds_pwr_vcc";
-		pinctrl-names = "default";
-		pinctrl-0 = <&lvds_vdd_pwr>;
 		gpio = <&gpio2 5 GPIO_ACTIVE_HIGH>;
 		//startup-delay-us = <20000>;
 		enable-active-high;
@@ -277,8 +267,6 @@
 	lvds_bkl_vcc: lvds-bkl-vcc {
 		compatible = "regulator-fixed";
 		regulator-name = "lvds_bkl_vcc";
-		pinctrl-names = "default";
-		pinctrl-0 = <&lvds_bkl_pwr_on>;
 		gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		//regulator-always-on;
@@ -291,8 +279,6 @@
 	dsi_vdd_core: dsi-vdd-core {
 		compatible = "regulator-fixed";
 		regulator-name = "dsi_vdd_core";
-		pinctrl-names = "default";
-		pinctrl-0 = <&dsi_pwr_vdd_core_h>;
 		gpio = <&gpio1 4 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
@@ -304,8 +290,6 @@
 	dsi_vdd_io: dsi-vdd-io {
 		compatible = "regulator-fixed";
 		regulator-name = "dsi_vdd_io";
-		pinctrl-names = "default";
-		pinctrl-0 = <&dsi_pwr_vdd_io_h>;
 		gpio = <&gpio1 22 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
@@ -342,6 +326,7 @@
 			sound-dai = <&hdmi>;
 		};
 	};
+
  	dp_sound: dp-sound {
                 status = "okay";
                 compatible = "rockchip,cdndp-sound";
@@ -486,30 +471,6 @@
 		regulator-boot-on;
 	};
 
-	cp210x_232_485 {
-		compatible = "cp210x-232-485";
-		status = "okay";
-		pinctrl-names = "default";
-		pinctrl-0 = <&cp210x_port2 &cp210x_port3>;
-		rs232_mode_table = <1 0 1>;
-		rs485_mode_table = <0 1 1>;
-
-		port2{
-			mode = <0>; /*0 RS232 1 RS485*/
-			sel0_gpio = <&gpio0 6  GPIO_ACTIVE_HIGH>;
-			sel1_gpio = <&gpio0 12 GPIO_ACTIVE_LOW>;
-			term_gpio = <&gpio0 13 GPIO_ACTIVE_HIGH>;
-			
-		};
-		
-		port3{
-			mode = <0>; /*0 RS232 1 RS485*/
-			sel0_gpio = <&gpio1 20 GPIO_ACTIVE_HIGH>;
-			sel1_gpio = <&gpio2 2  GPIO_ACTIVE_LOW>;
-			term_gpio = <&gpio4 24 GPIO_ACTIVE_HIGH>;
-		};
-	};
-
 };
 
 &vpu {
@@ -649,8 +610,6 @@
 
 // dsi
 &dsi {
-	pinctrl-names = "default";
-	pinctrl-0 = <&dsi_enable_h &dsi_reset_l>;
 	power-supply = <&dsi_vdd_core>;
 	power-io-supply = <&dsi_vdd_io>;
 	power-gpios =<&gpio1 4 GPIO_ACTIVE_HIGH>;
@@ -975,15 +934,6 @@
 	status = "okay";
 	i2c-scl-rising-time-ns = <475>;
 	i2c-scl-falling-time-ns = <26>;
-	fusb0: fusb30x@22 {
-                compatible = "fairchild,fusb302";
-                reg = <0x22>;
-                pinctrl-names = "default";
-                pinctrl-0 = <&fusb0_int>;
-                vbus-5v-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
-                int-n-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-                status = "disabled";
-        };	
 };
 
 &i2s0 {
@@ -1091,7 +1041,6 @@
 	num-lanes = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie_clkreqn>;
-	//&m2_pcie_reset_l>;
 	status = "okay";
 };
 
@@ -1577,6 +1526,7 @@
 &spdif {
 	status = "okay";
 };
+
 &dp_sound {
 	status = "okay";
 };
@@ -1656,7 +1606,6 @@
                 };
         };
 
-
 	sdmmc {
                 sdmmc_bus1: sdmmc-bus1 {
                         rockchip,pins =
@@ -1682,26 +1631,6 @@
                 };
         };
 	
-
-	fusb30x {
-		fusb0_int: fusb0-int {
-			rockchip,pins = <1 2 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-	};
-
-	compat {
-                cpt_gpio: cpt-gpio {
-                        rockchip,pins =
-                                <1 18 RK_FUNC_GPIO &pcfg_output_low>;
-                };
-        };
-	
-	headphone {
-                hp_det: hp-det {
-                        rockchip,pins = <4 28 RK_FUNC_GPIO &pcfg_pull_up>;
-                };
-        };
-	
 	leds {
             led_power: led-power{
             rockchip,pins = <4 18 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -1719,52 +1648,6 @@
                                 <2 28 RK_FUNC_GPIO &pcfg_pull_up>;
                 };
         };
-
-	edp {
-		edp_hpd: edp-hpd {
-			rockchip,pins =
-				<4 28 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	edp-panel {
-		edp_bkl_vdd_pin: edp-bkl-vdd-pin {
-			rockchip,pins = <3 30 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		edp_vdd_pwr: edp-vdd-pwr {
-			rockchip,pins = <2 4 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		edp_bkl_en: edp-bkl-en {
-			rockchip,pins = <2 6 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-	};
-
-	dsi-phy {
-		dsi_pwr_vdd_core_h: dsi-pwr-vdd-core-h {
-			rockchip,pins = <1 4 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		dsi_pwr_vdd_io_h: dsi-pwr-vdd-io-h {
-			rockchip,pins = <1 22 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		dsi_enable_h: dsi-enable-h {
-			rockchip,pins = <0 2 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		dsi_reset_l: dsi-reset-l {
-			rockchip,pins = <1 24 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-	};
-
-	lvds-panel {
-		lvds_vdd_pwr: lvds-vdd-pwr {
-			rockchip,pins = <2 5 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		lvds_bkl_pwr_on: lvds-bkl-pwr-on {
-			rockchip,pins = <1 0 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-		lvds_bkl_pwm_en: lvds-bkl-pwm-en {
-			rockchip,pins = <4 30 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-	};
 
 	vdp0 {
 		dp_det: dp-det {
@@ -1786,13 +1669,6 @@
 			rockchip,pins = <4 3  RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
-
-	touch {
-		touch_int: touch-int {
-			rockchip,pins =	<2 0 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
 	i2s0 {
 		i2s0_8ch_bus_1: i2s0-8ch-bus-1 {
 			rockchip,pins =
@@ -1801,13 +1677,6 @@
 				<3 26 RK_FUNC_1 &pcfg_pull_none>,
 				<3 27 RK_FUNC_1 &pcfg_pull_none>,
 				<3 31 RK_FUNC_1 &pcfg_pull_none>;
-		};
-	};
-
-	cam_pins {
-		cam0_default_pins: cam0-default-pins {
-			rockchip,pins = <1 23 RK_FUNC_GPIO &pcfg_pull_none>,
-					<2 27 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
@@ -1827,29 +1696,8 @@
 		system_rst_h: system-rst-h {
 			rockchip,pins = <1 6 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
-		adv_gpios: adv-gpios {
-			rockchip,pins = <2 8  RK_FUNC_GPIO &pcfg_pull_none>,
-							<1 18 RK_FUNC_GPIO &pcfg_pull_none>,
-							<3 28 RK_FUNC_GPIO &pcfg_pull_none>,
-							<4 4  RK_FUNC_GPIO &pcfg_pull_none>,
-							<0 8  RK_FUNC_GPIO &pcfg_pull_none>;
-		};
 	};
 
-	cp210x_232_485 {
-		cp210x_port2: cp210x-port2 {
-			rockchip,pins = <0 6  RK_FUNC_GPIO &pcfg_pull_up>,
-							<0 12 RK_FUNC_GPIO &pcfg_pull_up>,
-							<0 13 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-
-		cp210x_port3: cp210x-port3 {
-			rockchip,pins = <1 20 RK_FUNC_GPIO &pcfg_pull_up>,
-							<2 2  RK_FUNC_GPIO &pcfg_pull_up>,
-							<4 24 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-	};
-	
 	rgmii_phys {
                 rgmii_phy_reset: rgmii-phy-reset {
                         rockchip,pins = <3 15 RK_FUNC_GPIO &pcfg_pull_down>;

@@ -1774,12 +1774,28 @@ static void __init rk3399_clk_init(struct device_node *np)
 
 // Open HDMI external wave for EMI test
 #ifdef CONFIG_ARCH_ADVANTECH
-	writel_relaxed(0x00080000, rk3399_cru_base + 0xcc);
-	writel_relaxed(0x00070000, rk3399_cru_base + 0xd0);
-	writel_relaxed(0x00010001, rk3399_cru_base + 0xd4);
-	writel_relaxed(0x1f000100, rk3399_cru_base + 0xd0);
-	writel_relaxed(0x00f000f0, rk3399_cru_base + 0xd0);
-	writel_relaxed(0x7f000700, rk3399_cru_base + 0xd4);
+	struct device_node *root = NULL;
+	const char *model;
+	int value;
+	char *ds211_result = NULL;
+
+	if (IS_ENABLED(CONFIG_OF)){
+		root =of_find_node_by_path("/");
+
+		value = of_property_read_string(root, "model", &model);
+		if (value == 0) {
+			ds211_result = strstr(model,"DS-211");
+		}
+	}
+	if ( ds211_result == NULL ) {
+		printk(KERN_EMERG "The Board not DS211\r\n");
+		writel_relaxed(0x00080000, rk3399_cru_base + 0xcc);
+		writel_relaxed(0x00070000, rk3399_cru_base + 0xd0);
+		writel_relaxed(0x00010001, rk3399_cru_base + 0xd4);
+		writel_relaxed(0x1f000100, rk3399_cru_base + 0xd0);
+		writel_relaxed(0x00f000f0, rk3399_cru_base + 0xd0);
+		writel_relaxed(0x7f000700, rk3399_cru_base + 0xd4);
+	}
 #endif
 }
 CLK_OF_DECLARE(rk3399_cru, "rockchip,rk3399-cru", rk3399_clk_init);

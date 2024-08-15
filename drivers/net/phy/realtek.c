@@ -345,6 +345,7 @@ static int rtl8211f_read_status(struct phy_device *phydev)
 		}
 	} else
 		return genphy_read_status(phydev);
+	return 0;
 }
 
 #endif

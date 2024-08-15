@@ -1608,11 +1608,34 @@ out:
 
 static int rtl8211f_phy_fixup(struct phy_device *phydev)
 {
+       struct device_node *root=NULL;
+       const char *model;
+       int val = 0;
+       int value;
+       char *ds211_result = NULL;
+
+       if (IS_ENABLED(CONFIG_OF)){
+               root =of_find_node_by_path("/");
+
+               value = of_property_read_string(root, "model", &model);
+               if (value == 0) {
+                       ds211_result = strstr(model,"DS-211");
+               }
+       }
 	if (phydev->interface == PHY_INTERFACE_MODE_RGMII){
-		phy_write(phydev, 0x1f, 0x0d04);
-		phy_write(phydev, 0x10, 0x8910);
-		phy_write(phydev, 0x11, 0x0000);
-		phy_write(phydev, 0x1f, 0x0000);
+		if(ds211_result == NULL) {
+		     phy_write(phydev, 0x1f, 0x0d04);
+		     phy_write(phydev, 0x10, 0x8910);
+		     phy_write(phydev, 0x11, 0x0000);
+		     phy_write(phydev, 0x1f, 0x0000);
+		}else {
+                     phy_write(phydev, 0x1f, 0x0d04);
+                     phy_write(phydev, 0x10, 0xc048);
+                     val = phy_read(phydev, 0x11);
+                     val &= ~(0x7<<1);
+                     phy_write(phydev, 0x11, val);
+                     phy_write(phydev, 0x1f, 0x0000);
+		}
 	}
 
 	return 0;
