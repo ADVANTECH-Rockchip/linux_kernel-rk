@@ -368,14 +368,14 @@
 		clock-names = "ext_clock";
 		//wifi-bt-power-toggle;
 		//uart_rts_gpios = <&gpio2 19 GPIO_ACTIVE_LOW>; /* GPIO2_C3 */
-		pinctrl-names = "default", "rts_gpio";
-		pinctrl-0 = <&uart0_rts>;
+		//pinctrl-names = "default", "rts_gpio";
+		//pinctrl-0 = <&uart0_rts>;
 		//pinctrl-1 = <&uart0_gpios>;
 		//BT,power_gpio  = <&gpio3 19 GPIO_ACTIVE_HIGH>; /* GPIOx_xx */
 		BT,reset_gpio    = <&gpio0 9 GPIO_ACTIVE_HIGH>; /* GPIO0_B1 */
 		//BT,wake_gpio     = <&gpio2 26 GPIO_ACTIVE_HIGH>; /* GPIO2_D2 */
 		BT,wake_host_irq = <&gpio0 4 GPIO_ACTIVE_HIGH>; /* GPIO0_A4 */
-		status = "okay";
+		status = "disabled";
 	};
 	
 	leds {
@@ -1239,7 +1239,7 @@
 	/delete-property/ pinctrl-1;
 	/delete-property/ pinctrl-2;*/
 	/* tshut mode 0:CRU 1:GPIO */
-	rockchip,hw-tshut-mode = <1>;
+	rockchip,hw-tshut-mode = <0>;
 	/* tshut polarity 0:LOW 1:HIGH */
 	rockchip,hw-tshut-polarity = <1>;
 	rockchip,hw-tshut-temp = <110000>;
@@ -1524,7 +1524,9 @@
 };
 
 &spdif {
+	pinctrl-0 = <&spdif_bus_1>;
 	status = "okay";
+	#sound-dai-cells = <0>;
 };
 
 &dp_sound {
