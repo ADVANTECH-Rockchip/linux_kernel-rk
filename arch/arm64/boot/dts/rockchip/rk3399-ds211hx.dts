@@ -1126,15 +1126,15 @@
 &u2phy0 {
 	status = "okay";
 	rockchip,u2phy-tuning;
-	otg-vbus-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
+	//otg-vbus-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
 
 	u2phy0_otg: otg-port {
-		//vbus-supply = <&vcc_otg_vbus>;
+		vbus-supply = <&vcc_otg_vbus>;
 		status = "okay";
 	};
 
 	u2phy0_host: host-port {
-		phy-supply = <&vcc_otg_vbus>;
+		phy-supply = <&vcc5v0_host>;
 		status = "okay";
 	};
 };
